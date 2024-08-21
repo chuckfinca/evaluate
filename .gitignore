@@ -164,6 +164,5 @@ cython_debug/
 
 # Project specific
 models/saved
-benchmarks/code
-benchmarks/data
+benchmarks/benchmarks
 results/
