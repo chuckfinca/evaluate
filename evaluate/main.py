@@ -42,7 +42,7 @@ def check_required_args(args):
 def main(args):
     
     base_path = os.path.dirname(os.path.abspath(__file__))
-    args.config = os.path.join(base_path, "defaults_config.py")
+    args.config = os.path.join(base_path, "test_config.py")
 
     # Set args from config if supplied
     if args.config:
