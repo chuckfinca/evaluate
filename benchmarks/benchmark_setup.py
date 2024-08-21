@@ -6,19 +6,16 @@ import shutil
 from benchmarks.benchmark_config import get_benchmark_config
 
 def setup_benchmark(benchmark_name, base_path):
-    print(f'benchmark_name: {benchmark_name}')
-    print(f'base_path: {base_path}')
+
     config = get_benchmark_config(benchmark_name)
     if not config:
         raise ValueError(f"Benchmark '{benchmark_name}' is not supported.")
-    print(f'config: {config}')
 
-    benchmark_path = os.path.join(base_path, 'benchmarks')
+    benchmark_path = os.path.join(base_path, 'benchmarks', 'benchmarks')
     os.makedirs(benchmark_path, exist_ok=True)
 
     # Download and extract code
-    code_path = os.path.join(benchmark_path, 'code', benchmark_name)
-    print(f'code_path: {code_path}')
+    code_path = os.path.join(benchmark_path, benchmark_name, 'code')
     os.makedirs(code_path, exist_ok=True)
 
     if not os.listdir(code_path):  # Check if directory is empty
@@ -31,7 +28,7 @@ def setup_benchmark(benchmark_name, base_path):
             os.rmdir(extracted_dir)
 
     # Download and extract data
-    data_path = os.path.join(benchmark_path, 'data', benchmark_name)
+    data_path = os.path.join(benchmark_path, benchmark_name, 'data')
     os.makedirs(data_path, exist_ok=True)
 
     if not os.listdir(data_path):  # Check if directory is empty
