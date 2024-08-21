@@ -4,43 +4,65 @@ MMLU Citation: Hendrycks et al. (2021). Measuring Massive Multitask Language Und
 Ethics Citation: Hendrycks et al. (2021). Aligning AI With Shared Human Values. ICLR 2021.
 """
 import argparse
+import json
 import os
 import sys
 from models.huggingface_model import HuggingFaceModel
 from evaluation.evaluator_mmlu import MMLUEvaluator
 from config import add_to_sys_path, get_evaluation_project_path
+from benchmarks.benchmark_setup import setup_benchmark
 
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Evaluate a model on a specified benchmark",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser = argparse.ArgumentParser(description="Evaluate a model on a specified benchmark")
     parser.add_argument("--evaluation", type=str, help="Name of the evaluation (e.g., 'mmlu', 'hellaswag')")
     parser.add_argument("--model", type=str, help="Name or path of the model to evaluate")
-    parser.add_argument("--data_dir", type=str, 
-                        help="Path to the data directory (default: benchmarks/<evaluation>/data)")
-    parser.add_argument("--save_dir", type=str, 
-                        help="Directory to save evaluation results (default: ./results/<evaluation>)")
+    parser.add_argument("--data_dir", type=str, help="Path to the data directory (default: benchmarks/data/<evaluation>)")
+    parser.add_argument("--save_dir", type=str, help="Directory to save evaluation results (default: ./results/<evaluation>)")
     parser.add_argument("--ntrain", type=int, default=5, help="Number of examples to use for few-shot learning")
     parser.add_argument("--max_length", type=int, default=2048, help="Maximum length for generated sequences")
     parser.add_argument("--batch_size", type=int, default=1, help="Batch size for evaluation")
     parser.add_argument("--device", type=str, default="cuda", choices=["cuda", "cpu"], help="Device to use for computation")
+    parser.add_argument("--config", type=str, help="Path to JSON configuration file")
 
     return parser.parse_args()
 
+def load_config(config_path):
+    with open(config_path, 'r') as f:
+        return json.load(f)
+
+def check_required_args(args):
+    required_args = ['evaluation', 'model_name']
+    missing_args = [arg for arg in required_args if getattr(args, arg) is None]
+    if missing_args:
+        raise ValueError(f"Missing required arguments: {', '.join(missing_args)}")
+
 def main(args):
-    # Handle the case where no evaluation is provided
-    if args.evaluation is None:
-        print("No evaluation specified.")
+    
+    base_path = os.getcwd()# os.path.dirname(os.path.abspath(__file__))
+    args.config = os.path.join(base_path, "defaults_config.py")
+
+    # Set args from config if supplied
+    if args.config:
+        config = load_config(args.config)
+        for key, value in config.items():
+            setattr(args, key, value)
+    
+    # Check for required arguments after potentially loading from config
+    check_required_args(args)
+
+    # Set up the benchmark if it's not already present
+    print(base_path)
+    print(args.evaluation)
+    setup_benchmark(args.evaluation, base_path)
 
     # Set default paths based on the evaluation name if not provided
     if args.data_dir is None:
-        args.model = "google/gemma-2b-it"
-    if args.data_dir is None:
-        args.data_dir = os.path.join(os.getcwd(), "benchmarks", "data", args.evaluation)
+        args.data_dir = os.path.join(base_path, "benchmarks", "data", args.evaluation)
     if args.save_dir is None:
-        args.save_dir = os.path.join(os.getcwd(), "results", args.evaluation)
+        args.save_dir = os.path.join(base_path, "results", args.evaluation)
 
     # Add the specific benchmark/evaluation code's folder to sys.path
     path = get_evaluation_project_path(args.evaluation)

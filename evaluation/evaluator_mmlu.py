@@ -1,16 +1,25 @@
 import os
 import sys
+import importlib
 import numpy as np
 import pandas as pd
-
-# Import functions from MMLU scripts
-from benchmarks.benchmarks.mmlu import categories
-import benchmarks.benchmarks.mmlu.evaluate_flan as evaluate_flan
 
 class MMLUEvaluator:
     def __init__(self, model, args):
         self.model = model
         self.args = args
+        self.evaluation_name = args.evaluation
+
+        # Dynamically import the required modules
+        self.categories = self._import_module(f'benchmarks.code.{self.evaluation_name}.categories')
+        self.evaluate_module = self._import_module(f'benchmarks.code.{self.evaluation_name}.evaluate_flan')
+
+    def _import_module(self, module_path):
+        try:
+            return importlib.import_module(module_path)
+        except ImportError as e:
+            print(f"Error importing module {module_path}: {e}")
+            sys.exit(1)
 
     def evaluate(self):
         subjects = sorted([f.split("_test.csv")[0] for f in os.listdir(os.path.join(self.args.data_dir, "test")) if "_test.csv" in f])
@@ -30,8 +39,8 @@ class MMLUEvaluator:
         return weighted_acc
 
     def _eval_subject(self, subject, dev_df, test_df):
-        # Use the evaluation logic from MMLU, but with our custom model
-        cors, acc, probs = evaluate_flan.eval(self.args, subject, self.model, dev_df, test_df)
+        # Use the evaluation logic from the dynamically imported module
+        cors, acc, probs = self.evaluate_module.eval(self.args, subject, self.model, dev_df, test_df)
         return cors, acc, probs
 
     def _save_results(self, subject, test_df, cors, probs):
@@ -39,8 +48,7 @@ class MMLUEvaluator:
         os.makedirs(results_dir, exist_ok=True)
 
         test_df[f"{self.args.model}_correct"] = cors
-        for j, choice in enumerate(self.choices):
+        for j, choice in enumerate(self.evaluate_module.choices):
             test_df[f"{self.args.model}_choice{choice}_probs"] = probs[:, j]
 
         test_df.to_csv(os.path.join(results_dir, f"{subject}.csv"), index=None)
-
