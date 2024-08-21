@@ -163,6 +163,6 @@ cython_debug/
 
 
 # Project specific
-models/saved
-benchmarks/benchmarks
-results/
+evaluate/models/saved
+evaluate/benchmarks/benchmarks
+evaluate/results/

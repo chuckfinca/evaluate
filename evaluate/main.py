@@ -8,7 +8,7 @@ import json
 import os
 import sys
 from models.huggingface_model import HuggingFaceModel
-from evaluation.evaluator_mmlu import MMLUEvaluator
+from evaluators.evaluator_mmlu import MMLUEvaluator
 from config import add_to_sys_path, get_evaluation_project_path
 from benchmarks.benchmark_setup import setup_benchmark
 
@@ -17,7 +17,7 @@ def parse_args():
         description="Evaluate a model on a specified benchmark",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument("--evaluation", type=str, help="Name of the evaluation (e.g., 'mmlu', 'hellaswag')")
+    parser.add_argument("--benchmark", type=str, help="Name of the benchmark (e.g., 'mmlu', 'hellaswag')")
     parser.add_argument("--model", type=str, help="Name or path of the model to evaluate")
     parser.add_argument("--data_dir", type=str, help="Path to the data directory (default: benchmarks/data/<evaluation>)")
     parser.add_argument("--save_dir", type=str, help="Directory to save evaluation results (default: ./results/<evaluation>)")
@@ -34,14 +34,14 @@ def load_config(config_path):
         return json.load(f)
 
 def check_required_args(args):
-    required_args = ['evaluation', 'model_name']
+    required_args = ['benchmark', 'model_name']
     missing_args = [arg for arg in required_args if getattr(args, arg) is None]
     if missing_args:
         raise ValueError(f"Missing required arguments: {', '.join(missing_args)}")
 
 def main(args):
     
-    base_path = os.getcwd()# os.path.dirname(os.path.abspath(__file__))
+    base_path = os.path.dirname(os.path.abspath(__file__))
     args.config = os.path.join(base_path, "defaults_config.py")
 
     # Set args from config if supplied
@@ -55,20 +55,20 @@ def main(args):
 
     # Set up the benchmark if it's not already present
     print(base_path)
-    print(args.evaluation)
-    setup_benchmark(args.evaluation, base_path)
+    print(args.benchmark)
+    setup_benchmark(args.benchmark, base_path)
 
     # Set default paths based on the evaluation name if not provided
     if args.data_dir is None:
-        args.data_dir = os.path.join(base_path, "benchmarks", "data", args.evaluation)
+        args.data_dir = os.path.join(base_path, "benchmarks", "data", args.benchmark)
     if args.save_dir is None:
-        args.save_dir = os.path.join(base_path, "results", args.evaluation)
+        args.save_dir = os.path.join(base_path, "results", args.benchmark)
 
     # Add the specific benchmark/evaluation code's folder to sys.path
-    path = get_evaluation_project_path(args.evaluation)
+    path = get_evaluation_project_path(args.benchmark)
     add_to_sys_path(path)
 
-    print(f"Running evaluation '{args.evaluation}' with:")
+    print(f"Running evaluation '{args.benchmark}' with:")
     print(f"Model: {args.model}")
     print(f"Data directory: {args.data_dir}")
     print(f"Save directory: {args.save_dir}")

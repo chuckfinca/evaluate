@@ -20,12 +20,6 @@ def setup_benchmark(benchmark_name, base_path):
 
     if not os.listdir(code_path):  # Check if directory is empty
         _download_and_extract(config['code_url'], code_path, is_zip=True)
-        # Adjust this line based on the actual structure of the downloaded zip
-        extracted_dir = os.path.join(code_path, 'test-master')
-        if os.path.exists(extracted_dir):
-            for item in os.listdir(extracted_dir):
-                shutil.move(os.path.join(extracted_dir, item), code_path)
-            os.rmdir(extracted_dir)
 
     # Download and extract data
     data_path = os.path.join(benchmark_path, benchmark_name, 'data')
@@ -37,9 +31,6 @@ def setup_benchmark(benchmark_name, base_path):
     print(f"Benchmark '{benchmark_name}' has been set up successfully.")
 
 def _download_and_extract(url, path, is_zip=True):
-    print(f'_download_and_extract___________________________________')
-    print(f'url: {url}')
-    print(f'path: {path}')
     
     # Ensure the directory exists
     os.makedirs(path, exist_ok=True)
@@ -83,6 +74,3 @@ def _download_and_extract(url, path, is_zip=True):
         os.rmdir(top_level_folder)
 
     print(f"Extraction completed to: {path}")
-    print("Contents of the directory:")
-    for item in os.listdir(path):
-        print(f"  - {item}")
