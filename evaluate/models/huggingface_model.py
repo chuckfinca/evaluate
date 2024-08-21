@@ -8,10 +8,14 @@ class HuggingFaceModel(BaseModel):
 
     def __init__(self, model_name):
         self.model_name = model_name
+        self.token = os.getenv('HF_TOKEN')
 
-        self.local_model_path = os.path.join(os.getcwd(), "models", "saved")
-        print("-aaa")
-        print(self.local_model_path)
+        if not self.token:
+            raise ValueError("HF_TOKEN not found in .env file at the root of the project")
+
+        local_dir = os.path.dirname(os.path.abspath(__file__))
+        self.local_model_path = os.path.join(local_dir, "saved", model_name)
+
         if self._is_model_saved():
             self._load_local_model()
         else:
@@ -34,9 +38,9 @@ class HuggingFaceModel(BaseModel):
         self.model = AutoModelForCausalLM.from_pretrained(self.model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         
-        print(f"Saving model to {self.local_dir}")
-        self.model.save_pretrained(self.local_dir)
-        self.tokenizer.save_pretrained(self.local_dir)
+        print(f"Saving model to {self.local_model_path}")
+        self.model.save_pretrained(self.local_model_path)
+        self.tokenizer.save_pretrained(self.local_model_path)
 
     def generate_answer(self, prompt):
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)

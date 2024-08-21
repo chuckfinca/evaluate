@@ -12,6 +12,9 @@ from evaluators.evaluator_mmlu import MMLUEvaluator
 from config import add_to_sys_path, get_evaluation_project_path
 from benchmarks.benchmark_setup import setup_benchmark
 
+from dotenv import load_dotenv
+load_dotenv()
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Evaluate a model on a specified benchmark",
