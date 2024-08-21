@@ -11,17 +11,21 @@ class TestBenchmarkSetup(unittest.TestCase):
         os.makedirs(self.test_path, exist_ok=True)
 
     def tearDown(self):
+        print("Cleaning up...")
         shutil.rmtree(self.test_path)
 
     def test_mmlu_setup(self):
         # Run the setup
+        print('Setting up mmlu...')
         setup_benchmark('mmlu', self.test_path)
 
+        print('Checking that code was fetched...')
         # Check if the code directory exists and is not empty
         code_path = os.path.join(self.test_path, 'benchmarks', 'benchmarks', 'mmlu', 'code')
         self.assertTrue(os.path.exists(code_path))
         self.assertTrue(len(os.listdir(code_path)) > 0)
 
+        print('Checking that data was fetched...')
         # Check if the data directory exists and is not empty
         data_path = os.path.join(self.test_path, 'benchmarks', 'benchmarks', 'mmlu', 'data')
         self.assertTrue(os.path.exists(data_path))
