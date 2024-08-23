@@ -6,7 +6,7 @@ from .base_model import BaseModel
 
 class HuggingFaceModel(BaseModel):
 
-    def __init__(self, model_name, base_path):
+    def __init__(self, model_name, base_path, device):
         self.model_name = model_name
         self.token = os.getenv('HF_TOKEN')
 
@@ -20,7 +20,7 @@ class HuggingFaceModel(BaseModel):
         else:
             self._download_and_save_model()
 
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.device = device
         self.model.to(self.device)
         self.model.eval()
     

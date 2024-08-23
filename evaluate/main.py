@@ -22,8 +22,6 @@ def parse_args():
     )
     parser.add_argument("--benchmark_name", type=str, help="Name of the benchmark (e.g., 'mmlu', 'hellaswag')")
     parser.add_argument("--model_name", type=str, help="Name or path of the model to evaluate")
-    parser.add_argument("--data_dir", type=str, help="Path to the data directory (default: benchmarks/data/<evaluation>)")
-    parser.add_argument("--save_dir", type=str, help="Directory to save evaluation results (default: ./results/<evaluation>)")
     parser.add_argument("--ntrain", type=int, default=5, help="Number of examples to use for few-shot learning")
     parser.add_argument("--max_length", type=int, default=2048, help="Maximum length for generated sequences")
     parser.add_argument("--batch_size", type=int, default=1, help="Batch size for evaluation")
@@ -60,27 +58,19 @@ def main(args):
     # Set up the benchmark if it's not already present
     setup_benchmark(args.benchmark_name, base_path)
 
-    # Set default paths based on the evaluation name if not provided
-    if args.data_dir is None:
-        args.data_dir = os.path.join(base_path, "benchmarks", "data", args.benchmark_name)
-    if args.save_dir is None:
-        args.save_dir = os.path.join(base_path, "results", args.benchmark_name)
-
     # Add the specific benchmark/evaluation code's folder to sys.path
     path = get_evaluation_project_path(args.benchmark_name)
     add_to_sys_path(path)
 
     print(f"Running evaluation '{args.benchmark_name}' with:")
     print(f"Model: {args.model_name}")
-    print(f"Data directory: {args.data_dir}")
-    print(f"Save directory: {args.save_dir}")
     print(f"Number of training examples: {args.ntrain}")
     print(f"Max length: {args.max_length}")
     print(f"Batch size: {args.batch_size}")
     print(f"Device: {args.device}")
     
-    model = HuggingFaceModel(args.model_name, base_path)
-    evaluator = MMLUEvaluator(model, args)
+    model = HuggingFaceModel(args.model_name, base_path, args.device)
+    evaluator = MMLUEvaluator(model.model, model.tokenizer, args, base_path)
     evaluator.evaluate()
 
 if __name__ == "__main__":
