@@ -6,15 +6,14 @@ from .base_model import BaseModel
 
 class HuggingFaceModel(BaseModel):
 
-    def __init__(self, model_name):
+    def __init__(self, model_name, base_path):
         self.model_name = model_name
         self.token = os.getenv('HF_TOKEN')
 
         if not self.token:
             raise ValueError("HF_TOKEN not found in .env file at the root of the project")
 
-        local_dir = os.path.dirname(os.path.abspath(__file__))
-        self.local_model_path = os.path.join(local_dir, "saved", model_name)
+        self.local_model_path = os.path.join(base_path, 'models', "saved", model_name)
 
         if self._is_model_saved():
             self._load_local_model()

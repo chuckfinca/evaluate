@@ -1,4 +1,5 @@
 import os
+import pprint
 import sys
 import importlib
 import numpy as np
@@ -8,17 +9,30 @@ class MMLUEvaluator:
     def __init__(self, model, args):
         self.model = model
         self.args = args
-        self.evaluation_name = args.evaluation
+        self.benchmark_name = args.benchmark_name
 
-        # Dynamically import the required modules
-        self.categories = self._import_module(f'benchmarks.code.{self.evaluation_name}.categories')
-        self.evaluate_module = self._import_module(f'benchmarks.code.{self.evaluation_name}.evaluate_flan')
+        # Base path for the benchmark code
+        self.code_path = f'benchmarks.benchmarks.{self.benchmark_name}.code'
 
-    def _import_module(self, module_path):
+        self.categories = self._import_module('categories')
+        self.evaluate_module = self._import_module('evaluate_flan')
+        
+        # Base path for the benchmark data
+        self.data_path = f'benchmarks.benchmarks.{self.benchmark_name}.data'
+
+    def _import_module(self, module_name):
         try:
-            return importlib.import_module(module_path)
+            # Construct the full module path
+            full_module_path = f'{self.code_path}.{module_name}'
+            
+            # Import the module
+            module = importlib.import_module(full_module_path)
+
+            sys.modules[module_name] = module
+            
+            return module
         except ImportError as e:
-            print(f"Error importing module {module_path}: {e}")
+            print(f"Error importing module {full_module_path}: {e}")
             sys.exit(1)
 
     def evaluate(self):

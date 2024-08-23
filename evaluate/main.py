@@ -43,8 +43,9 @@ def check_required_args(args):
         raise ValueError(f"Missing required arguments: {', '.join(missing_args)}")
 
 def main(args):
-    
+
     base_path = os.path.dirname(os.path.abspath(__file__))
+    # TODO: remove once evaluations work
     args.config = os.path.join(base_path, "test_config.py")
 
     # Set args from config if supplied
@@ -57,8 +58,6 @@ def main(args):
     check_required_args(args)
 
     # Set up the benchmark if it's not already present
-    print(base_path)
-    print(args.benchmark_name)
     setup_benchmark(args.benchmark_name, base_path)
 
     # Set default paths based on the evaluation name if not provided
@@ -80,7 +79,7 @@ def main(args):
     print(f"Batch size: {args.batch_size}")
     print(f"Device: {args.device}")
     
-    model = HuggingFaceModel(args.model_name)
+    model = HuggingFaceModel(args.model_name, base_path)
     evaluator = MMLUEvaluator(model, args)
     evaluator.evaluate()
 
