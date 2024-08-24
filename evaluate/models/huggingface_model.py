@@ -21,20 +21,28 @@ class HuggingFaceModel(BaseModel):
             self._download_and_save_model()
 
         self.device = device
-        self.model.to(self.device)
+        # self.model.to(self.device)
         self.model.eval()
     
     def _is_model_saved(self):
         return os.path.exists(self.local_model_path)
 
+    def _setup_model(self, model_path):
+        return AutoModelForCausalLM.from_pretrained(
+            model_path,
+            # config=config,
+            device_map="auto",
+            torch_dtype=torch.float16  # This uses less memory
+        )
+
     def _load_local_model(self):
         print(f"Loading model from {self.local_model_path}")
-        self.model = AutoModelForCausalLM.from_pretrained(self.local_model_path)
+        self.model = self._setup_model(self.local_model_path)
         self.tokenizer = AutoTokenizer.from_pretrained(self.local_model_path)
 
     def _download_and_save_model(self):
         print(f"Downloading model {self.model_name}")
-        self.model = AutoModelForCausalLM.from_pretrained(self.model_name)
+        self.model = self._setup_model(self.model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         
         print(f"Saving model to {self.local_model_path}")
