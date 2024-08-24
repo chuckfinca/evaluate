@@ -166,3 +166,4 @@ cython_debug/
 evaluate/models/saved
 evaluate/benchmarks/benchmarks
 evaluate/results/
+evaluate/test_config.py
