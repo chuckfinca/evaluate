@@ -1,7 +1,7 @@
 import unittest
 import os
 import shutil
-from evaluate.evaluators.evaluator_mmlu import MMLUEvaluator
+from evaluate.orchestrators.mmlu_benchmark_orchestrator import MMLUBenchmarkOrchestrator
 from evaluate.benchmarks.benchmark_setup import setup_benchmark
 
 class TestBenchmarkSetup(unittest.TestCase):

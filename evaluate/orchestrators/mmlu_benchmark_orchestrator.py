@@ -1,11 +1,10 @@
 import os
-import pprint
 import sys
 import importlib
 import numpy as np
 import pandas as pd
 
-class MMLUEvaluator:
+class MMLUBenchmarkOrchestrator:
     def __init__(self, model, tokenizer, args, project_root):
         self.model = model
         self.tokenizer = tokenizer
@@ -16,7 +15,7 @@ class MMLUEvaluator:
         self.code_module_path = f'benchmarks.benchmarks.{self.benchmark_name}.code'
 
         self.categories = self._import_module('categories')
-        self.evaluate_module = self._import_module('evaluate_flan')
+        self.evaluate_module = self._import_module('evaluate_causal_lm')  # Changed to use the new module
         
         # Base path for the benchmark data
         self.data_folder_path = os.path.join(project_root, f'benchmarks/benchmarks/{self.benchmark_name}/data')
@@ -60,11 +59,11 @@ class MMLUEvaluator:
         return cors, acc, probs
 
     def _save_results(self, subject, test_df, cors, probs):
-        results_dir = os.path.join(self.args.save_dir, f"results_{self.args.model}")
+        results_dir = os.path.join(self.args.project_root, "results", f"results_{self.args.model_name}")
         os.makedirs(results_dir, exist_ok=True)
 
-        test_df[f"{self.args.model}_correct"] = cors
+        test_df[f"{self.args.model_name}_correct"] = cors
         for j, choice in enumerate(self.evaluate_module.choices):
-            test_df[f"{self.args.model}_choice{choice}_probs"] = probs[:, j]
+            test_df[f"{self.args.model_name}_choice{choice}_probs"] = [p[j] for p in probs]
 
         test_df.to_csv(os.path.join(results_dir, f"{subject}.csv"), index=None)
