@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 class MMLUEvaluator:
-    def __init__(self, model, tokenizer, args, base_path):
+    def __init__(self, model, tokenizer, args, project_root):
         self.model = model
         self.tokenizer = tokenizer
         self.args = args
@@ -19,7 +19,7 @@ class MMLUEvaluator:
         self.evaluate_module = self._import_module('evaluate_flan')
         
         # Base path for the benchmark data
-        self.data_folder_path = os.path.join(base_path, f'benchmarks/benchmarks/{self.benchmark_name}/data')
+        self.data_folder_path = os.path.join(project_root, f'benchmarks/benchmarks/{self.benchmark_name}/data')
 
     def _import_module(self, module_name):
         try:

@@ -6,8 +6,8 @@ from evaluate.benchmarks.benchmark_setup import setup_benchmark
 
 class TestBenchmarkSetup(unittest.TestCase):
     def setUp(self):
-        self.base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.test_path = os.path.join(self.base_path, 'test_benchmarks')
+        self.project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.test_path = os.path.join(self.project_root, 'test_benchmarks')
         os.makedirs(self.test_path, exist_ok=True)
 
     def tearDown(self):

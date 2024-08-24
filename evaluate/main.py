@@ -22,6 +22,7 @@ def parse_args():
     )
     parser.add_argument("--benchmark_name", type=str, help="Name of the benchmark (e.g., 'mmlu', 'hellaswag')")
     parser.add_argument("--model_name", type=str, help="Name or path of the model to evaluate")
+    parser.add_argument("--project_root", type=str, default=os.path.dirname(os.path.abspath(__file__)), help="Path to the project folder")
     parser.add_argument("--ntrain", type=int, default=5, help="Number of examples to use for few-shot learning")
     parser.add_argument("--max_length", type=int, default=2048, help="Maximum length for generated sequences")
     parser.add_argument("--batch_size", type=int, default=1, help="Batch size for evaluation")
@@ -35,28 +36,37 @@ def load_config(config_path):
         return json.load(f)
 
 def check_required_args(args):
-    required_args = ['benchmark_name', 'model_name']
+    required_args = ['benchmark_name', 'model_name', 'project_root']
     missing_args = [arg for arg in required_args if getattr(args, arg) is None]
     if missing_args:
         raise ValueError(f"Missing required arguments: {', '.join(missing_args)}")
+    
+    # Check if main.py exists in the project root
+    main_py_path = os.path.join(args.project_root, 'main.py')
+    if not os.path.isfile(main_py_path):
+        raise ValueError(f"Invalid project root: {args.project_root}. Please provide the path to the project root where main.py can be found.")
+
+
 
 def main(args):
 
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    # TODO: remove once evaluations work
-    args.config = os.path.join(base_path, "test_config.py")
+    project_root = args.project_root
 
-    # Set args from config if supplied
-    if args.config:
-        config = load_config(args.config)
-        for key, value in config.items():
-            setattr(args, key, value)
+    # TODO: remove once evaluations work
+    if os.path.exists(os.path.join(project_root, "test_config.py")):
+        args.config = os.path.join(project_root, "test_config.py")
+
+        # Set args from config if supplied
+        if args.config:
+            config = load_config(args.config)
+            for key, value in config.items():
+                setattr(args, key, value)
     
     # Check for required arguments after potentially loading from config
     check_required_args(args)
 
     # Set up the benchmark if it's not already present
-    setup_benchmark(args.benchmark_name, base_path)
+    setup_benchmark(args.benchmark_name, project_root)
 
     # Add the specific benchmark/evaluation code's folder to sys.path
     path = get_evaluation_project_path(args.benchmark_name)
@@ -69,8 +79,8 @@ def main(args):
     print(f"Batch size: {args.batch_size}")
     print(f"Device: {args.device}")
     
-    model = HuggingFaceModel(args.model_name, base_path, args.device)
-    evaluator = MMLUEvaluator(model.model, model.tokenizer, args, base_path)
+    model = HuggingFaceModel(args.model_name, project_root, args.device)
+    evaluator = MMLUEvaluator(model.model, model.tokenizer, args, project_root)
     evaluator.evaluate()
 
 if __name__ == "__main__":

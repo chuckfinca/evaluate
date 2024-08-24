@@ -5,13 +5,13 @@ import tarfile
 import shutil
 from evaluate.benchmarks.benchmark_config import get_benchmark_config
 
-def setup_benchmark(benchmark_name, base_path):
+def setup_benchmark(benchmark_name, project_root):
 
     config = get_benchmark_config(benchmark_name)
     if not config:
         raise ValueError(f"Benchmark '{benchmark_name}' is not supported.")
 
-    benchmark_path = os.path.join(base_path, 'benchmarks', 'benchmarks')
+    benchmark_path = os.path.join(project_root, 'benchmarks', 'benchmarks')
     os.makedirs(benchmark_path, exist_ok=True)
 
     # Download and extract code

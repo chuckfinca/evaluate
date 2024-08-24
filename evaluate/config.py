@@ -2,11 +2,11 @@ import os
 import sys
 
 # Base path for all projects
-BASE_PATH = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # Project-specific paths
-MMLU_PATH = os.path.join(BASE_PATH, 'benchmarks', 'benchmarks', 'mmlu')
-# OTHER_PROJECT_PATH = os.path.join(BASE_PATH, 'other_project')
+MMLU_PATH = os.path.join(PROJECT_ROOT, 'benchmarks', 'benchmarks', 'mmlu')
+# OTHER_PROJECT_PATH = os.path.join(PROJECT_ROOT, 'other_project')
 
 # You can add more paths as needed
 PATHS = {
@@ -24,4 +24,4 @@ def add_to_sys_path(path):
         print(f'adding path: {path}')
         sys.path.insert(0, path)
 
-add_to_sys_path(BASE_PATH)
+add_to_sys_path(PROJECT_ROOT)
