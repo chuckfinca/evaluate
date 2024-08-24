@@ -3,7 +3,7 @@ import requests
 import zipfile
 import tarfile
 import shutil
-from evaluate.benchmarks.benchmark_config import get_benchmark_config
+from .benchmark_config import get_benchmark_config
 
 def setup_benchmark(benchmark_name, project_root):
 
