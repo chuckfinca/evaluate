@@ -8,7 +8,7 @@ import json
 import os
 import sys
 from models.huggingface_model import HuggingFaceModel
-from evaluate.orchestrators.mmlu_benchmark_orchestrator import MMLUBenchmarkOrchestrator
+from orchestrators.mmlu_benchmark_orchestrator import MMLUBenchmarkOrchestrator
 from config import add_to_sys_path, get_evaluation_project_path
 from benchmarks.benchmark_setup import setup_benchmark
 
