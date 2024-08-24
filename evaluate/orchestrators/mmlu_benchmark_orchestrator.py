@@ -9,25 +9,19 @@ class MMLUBenchmarkOrchestrator:
         self.model = model
         self.tokenizer = tokenizer
         self.args = args
-        self.benchmark_name = args.benchmark_name
 
-        # Base path for the benchmark code
-        self.code_module_path = f'benchmarks.benchmarks.{self.benchmark_name}.code'
-
-        self.categories = self._import_module('categories')
-        self.evaluate_module = self._import_module('evaluate_causal_lm')  # Changed to use the new module
+        self.categories = self._import_module('categories', f'benchmarks.benchmarks.{args.benchmark_name}.code')
+        self.evaluate_module = self._import_module('evaluate_causal_lm', 'benchmarks.custom_evaluators')
         
         # Base path for the benchmark data
-        self.data_folder_path = os.path.join(project_root, f'benchmarks/benchmarks/{self.benchmark_name}/data')
+        self.data_folder_path = os.path.join(project_root, f'benchmarks/benchmarks/{args.benchmark_name}/data')
 
-    def _import_module(self, module_name):
+    def _import_module(self, module_name, module_directory):
         try:
             # Construct the full module path
-            full_module_path = f'{self.code_module_path}.{module_name}'
-            
-            # Import the module
-            module = importlib.import_module(full_module_path)
+            full_module_path = f'{module_directory}.{module_name}'
 
+            module = importlib.import_module(full_module_path)
             sys.modules[module_name] = module
             
             return module

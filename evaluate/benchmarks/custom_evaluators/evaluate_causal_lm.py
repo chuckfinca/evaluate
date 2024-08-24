@@ -19,7 +19,7 @@ def format_prompt(train_df, test_df, test_idx):
     prompt += format_example(test_df, test_idx, include_answer=False)
     return prompt
 
-def score(args, subject, model, tokenizer, dev_df, test_df):
+def eval(args, subject, model, tokenizer, dev_df, test_df):
     cors = []
     preds = []
     probs = []
