@@ -21,7 +21,6 @@ class HuggingFaceModel(BaseModel):
             self._download_and_save_model()
 
         self.device = device
-        # self.model.to(self.device)
         self.model.eval()
     
     def _is_model_saved(self):
@@ -31,7 +30,7 @@ class HuggingFaceModel(BaseModel):
         return AutoModelForCausalLM.from_pretrained(
             model_path,
             # config=config,
-            device_map="auto",
+            # device_map="auto",
             torch_dtype=torch.float16  # This uses less memory
         )
 
