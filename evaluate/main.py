@@ -7,10 +7,12 @@ import argparse
 import json
 import os
 import sys
+from processors.result_processor import calculate_score, extract_correctness_results_from, path_to_results
 from models.huggingface_model import HuggingFaceModel
 from orchestrators.mmlu_benchmark_orchestrator import MMLUBenchmarkOrchestrator
 from config import add_to_sys_path, get_evaluation_project_path
 from benchmarks.benchmark_setup import setup_benchmark
+from visualizers.chart_creator import create_mmlu_comparison_chart
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -22,6 +24,7 @@ def parse_args():
     )
     parser.add_argument("--benchmark_name", type=str, help="Name of the benchmark (e.g., 'mmlu', 'hellaswag')")
     parser.add_argument("--model_name", type=str, help="Name or path of the model to evaluate")
+    parser.add_argument("--reported_score", type=str, help="The official reported score for the benchmark, if available")
     parser.add_argument("--project_root", type=str, default=os.path.dirname(os.path.abspath(__file__)), help="Path to the project folder")
     parser.add_argument("--ntrain", type=int, default=5, help="Number of examples to use for few-shot learning")
     parser.add_argument("--max_length", type=int, default=2048, help="Maximum length for generated sequences")
@@ -74,6 +77,7 @@ def main(args):
 
     print(f"Running evaluation '{args.benchmark_name}' with:")
     print(f"Model: {args.model_name}")
+    print(f"Reported Score: {args.reported_score}")
     print(f"Number of training examples: {args.ntrain}")
     print(f"Max length: {args.max_length}")
     print(f"Batch size: {args.batch_size}")
@@ -82,6 +86,7 @@ def main(args):
     model = HuggingFaceModel(args.model_name, project_root, args.device)
     evaluator = MMLUBenchmarkOrchestrator(model.model, model.tokenizer, args, project_root)
     evaluator.evaluate()
+
 
 if __name__ == "__main__":
     args = parse_args()
