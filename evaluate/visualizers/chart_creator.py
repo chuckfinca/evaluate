@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import os
 import time
 
-from evaluate.processors.result_processor import path_to_results
+from processors.result_processor import path_to_results
 
 def create_mmlu_comparison_chart(realized_score, reported_score, args):
     """
