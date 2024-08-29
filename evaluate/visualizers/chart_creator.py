@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import os
 import time
 
+import numpy as np
+
 from processors.result_processor import path_to_results
 
 def create_mmlu_comparison_chart(realized_score, reported_score, args):
@@ -25,18 +27,20 @@ def create_mmlu_comparison_chart(realized_score, reported_score, args):
 
     # Data
     evaluation = ['Reported', 'Realized']
-    scores = [reported_score, realized_score]
+    scores = [float(reported_score), float(realized_score)]
 
     # Create bar chart
     fig, ax = plt.subplots(figsize=(12, 7))
-    bars = ax.bar(evaluation, scores, color=['#D3D3D3', '#4285F4'])
+    x_pos = np.arange(len(evaluation))
+    bars = ax.bar(x_pos, scores, color=['#D3D3D3', '#4285F4'])
 
     # Customize the chart
     ax.set_ylabel('MMLU Score', fontsize=18)
     ax.set_title(f'MMLU Test Results: {args.model_name}', fontsize=18, fontweight='bold')
     ax.set_ylim(0, 100)  # Set y-axis from 0 to 100 for percentage scale
 
-    # x-axis labels
+    # Set x-axis ticks and labels
+    ax.set_xticks(x_pos)
     ax.set_xticklabels(evaluation, fontsize=18)
 
     # y-axis label
@@ -60,3 +64,5 @@ def create_mmlu_comparison_chart(realized_score, reported_score, args):
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
 
     print(f"Chart saved as {output_path}")
+
+    return fig

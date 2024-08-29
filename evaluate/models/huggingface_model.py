@@ -19,8 +19,9 @@ class HuggingFaceModel(BaseModel):
             self._load_local_model()
         else:
             self._download_and_save_model()
-
-        self.device = args.device
+        
+        self.tokenizer.to(args.device)
+        self.model.to(args.device)
         self.model.eval()
     
     def _is_model_saved(self):
@@ -29,9 +30,7 @@ class HuggingFaceModel(BaseModel):
     def _setup_model(self, model_path):
         return AutoModelForCausalLM.from_pretrained(
             model_path,
-            # config=config,
-            # device_map="auto",
-            torch_dtype=torch.float16  # This uses less memory
+            # torch_dtype=torch.float16  # This uses less memory
         )
 
     def _load_local_model(self):
@@ -49,13 +48,13 @@ class HuggingFaceModel(BaseModel):
         self.tokenizer.save_pretrained(self.local_model_path)
 
     def generate_answer(self, prompt):
-        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
+        inputs = self.tokenizer(prompt, return_tensors="pt")
         with torch.no_grad():
             outputs = self.model.generate(**inputs)
         return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
 
     def get_answer_probabilities(self, prompt, choices):
-        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
+        inputs = self.tokenizer(prompt, return_tensors="pt")
         with torch.no_grad():
             outputs = self.model(**inputs)
         logits = outputs.logits[0, -1]

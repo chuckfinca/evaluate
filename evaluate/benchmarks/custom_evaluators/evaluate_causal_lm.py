@@ -26,7 +26,7 @@ def eval(args, subject, model, tokenizer, dev_df, test_df):
 
     for i in range(len(test_df)):
         prompt = format_prompt(dev_df, test_df, i)
-        inputs = tokenizer(prompt, return_tensors="pt").to(args.device)
+        inputs = tokenizer(prompt, return_tensors="pt")
         
         with torch.no_grad():
             outputs = model(**inputs)

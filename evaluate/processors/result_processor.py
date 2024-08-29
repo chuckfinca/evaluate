@@ -19,8 +19,8 @@ def extract_correctness_results_from(results_dir):
         if filename.endswith('.csv'):
             file_path = os.path.join(results_dir, filename)
             df = pd.read_csv(file_path)
-            if 'meta-llama/Meta-Llama-3.1-8B-Instruct_correct' in df.columns:
-                cors = df['meta-llama/Meta-Llama-3.1-8B-Instruct_correct'].to_numpy()
+            if 'correct' in df.columns:
+                cors = df['correct'].to_numpy()
                 all_cors.append(cors)
     return all_cors
 

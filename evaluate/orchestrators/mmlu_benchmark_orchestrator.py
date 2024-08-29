@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from visualizers.chart_creator import create_mmlu_comparison_chart
-from processors.result_processor import path_to_results
+from processors.result_processor import calculate_score, path_to_results
 
 class MMLUBenchmarkOrchestrator:
     def __init__(self, model, tokenizer, args, project_root):
@@ -42,11 +42,11 @@ class MMLUBenchmarkOrchestrator:
             test_df = pd.read_csv(os.path.join(self.data_folder_path, "test", f"{subject}_test.csv"), header=None)
 
             cors, acc, probs = self._eval_subject(subject, dev_df, test_df)
+            self._save_results(subject, test_df, cors, probs)
+            
             all_cors.append(cors)
 
-            self._save_results(subject, test_df, cors, probs)
-
-        average_acc = self.calculate_score(cors)
+        average_acc = calculate_score(all_cors)
         print(f"Average accuracy: {average_acc:.3f}")
 
         return average_acc
