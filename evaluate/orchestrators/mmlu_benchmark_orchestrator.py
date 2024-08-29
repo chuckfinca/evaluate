@@ -32,7 +32,7 @@ class MMLUBenchmarkOrchestrator:
             print(f"Error importing module {full_module_path}: {e}")
             sys.exit(1)
 
-    def evaluate(self, reported_score):
+    def evaluate(self):
         test_directory = os.path.join(self.data_folder_path, 'test')
         subjects = sorted([f.split("_test.csv")[0] for f in os.listdir(test_directory) if "_test.csv" in f])
 
@@ -49,8 +49,6 @@ class MMLUBenchmarkOrchestrator:
         average_acc = self.calculate_score(cors)
         print(f"Average accuracy: {average_acc:.3f}")
 
-        if self.args.reported_score is not None:
-            create_mmlu_comparison_chart(average_acc, self.args.reported_score, self.args)
         return average_acc
 
     def _eval_subject(self, subject, dev_df, test_df):

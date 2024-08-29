@@ -85,8 +85,10 @@ def main(args):
     
     model = HuggingFaceModel(args.model_name, project_root, args.device)
     evaluator = MMLUBenchmarkOrchestrator(model.model, model.tokenizer, args, project_root)
-    evaluator.evaluate()
+    realized_acc = evaluator.evaluate()
 
+    if args.reported_score is not None:
+        create_mmlu_comparison_chart(realized_acc, args.reported_score, args)
 
 if __name__ == "__main__":
     args = parse_args()
