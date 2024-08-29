@@ -6,21 +6,21 @@ from .base_model import BaseModel
 
 class HuggingFaceModel(BaseModel):
 
-    def __init__(self, model_name, project_root, device):
-        self.model_name = model_name
+    def __init__(self, args):
+        self.model_name = args.model_name
         self.token = os.getenv('HF_TOKEN')
 
         if not self.token:
             raise ValueError("HF_TOKEN not found in .env file at the root of the project")
 
-        self.local_model_path = os.path.join(project_root, 'models', "saved", model_name)
+        self.local_model_path = os.path.join(args.project_root, 'models', "saved", args.model_name)
 
         if self._is_model_saved():
             self._load_local_model()
         else:
             self._download_and_save_model()
 
-        self.device = device
+        self.device = args.device
         self.model.eval()
     
     def _is_model_saved(self):

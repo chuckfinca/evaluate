@@ -83,7 +83,7 @@ def main(args):
     print(f"Batch size: {args.batch_size}")
     print(f"Device: {args.device}")
     
-    model = HuggingFaceModel(args.model_name, project_root, args.device)
+    model = HuggingFaceModel(args)
     evaluator = MMLUBenchmarkOrchestrator(model.model, model.tokenizer, args, project_root)
     realized_acc = evaluator.evaluate()
 
