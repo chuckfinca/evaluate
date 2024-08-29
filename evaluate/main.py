@@ -29,7 +29,6 @@ def parse_args():
     parser.add_argument("--ntrain", type=int, default=5, help="Number of examples to use for few-shot learning")
     parser.add_argument("--max_length", type=int, default=2048, help="Maximum length for generated sequences")
     parser.add_argument("--batch_size", type=int, default=1, help="Batch size for evaluation")
-    parser.add_argument("--device", type=str, default="cuda", choices=["cuda", "cpu"], help="Device to use for computation")
     parser.add_argument("--config", type=str, help="Path to JSON configuration file")
 
     return parser.parse_args()
@@ -81,7 +80,6 @@ def main(args):
     print(f"Number of training examples: {args.ntrain}")
     print(f"Max length: {args.max_length}")
     print(f"Batch size: {args.batch_size}")
-    print(f"Device: {args.device}")
     
     model = HuggingFaceModel(args)
     evaluator = MMLUBenchmarkOrchestrator(model.model, model.tokenizer, args, project_root)

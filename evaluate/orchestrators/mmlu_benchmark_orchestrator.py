@@ -3,8 +3,7 @@ import sys
 import importlib
 import numpy as np
 import pandas as pd
-
-from visualizers.chart_creator import create_mmlu_comparison_chart
+import torch
 from processors.result_processor import calculate_score, path_to_results
 
 class MMLUBenchmarkOrchestrator:
@@ -12,9 +11,10 @@ class MMLUBenchmarkOrchestrator:
         self.model = model
         self.tokenizer = tokenizer
         self.args = args
+        self.choices = ["A", "B", "C", "D"]
 
         self.categories = self._import_module('categories', f'benchmarks.benchmarks.{args.benchmark_name}.code')
-        self.evaluate_module = self._import_module('evaluate_causal_lm', 'benchmarks.custom_evaluators')
+        # self.evaluate_module = self._import_module('evaluate_causal_lm', 'benchmarks.custom_evaluators')
         
         # Base path for the benchmark data
         self.data_folder_path = os.path.join(project_root, f'benchmarks/benchmarks/{args.benchmark_name}/data')
@@ -51,11 +51,49 @@ class MMLUBenchmarkOrchestrator:
 
         return average_acc
 
-    def _eval_subject(self, subject, dev_df, test_df):
-        # Use the evaluation logic from the dynamically imported module
-        cors, acc, probs = self.evaluate_module.eval(self.args, subject, self.model, self.tokenizer, dev_df, test_df)
-        return cors, acc, probs
+    def format_example(self, df, idx, include_answer=True):
+        prompt = df.iloc[idx, 0]
+        for j, choice in enumerate(self.choices):
+            prompt += f"\n{choice}. {df.iloc[idx, j+1]}"
+        prompt += "\nAnswer:"
+        if include_answer:
+            prompt += f" {df.iloc[idx, 5]}"
+        return prompt
 
+    def format_prompt(self, train_df, test_df, test_idx):
+        prompt = "Answer the following multiple choice questions. Choose the best answer from A, B, C, or D.\n\n"
+        for i in range(len(train_df)):
+            prompt += self.format_example(train_df, i) + "\n\n"
+        prompt += self.format_example(test_df, test_idx, include_answer=False)
+        return prompt
+
+    def _eval_subject(self, subject, dev_df, test_df):
+        cors = []
+        preds = []
+        probs = []
+
+        for i in range(len(test_df)):
+            prompt = self.format_prompt(dev_df, test_df, i)
+            inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+            
+            with torch.no_grad():
+                outputs = self.model(**inputs)
+            
+            logits = outputs.logits[0, -1]
+            probs_i = torch.nn.functional.softmax(logits, dim=-1)
+            
+            choice_probs = [probs_i[self.tokenizer.encode(choice, add_special_tokens=False)[0]].item() for choice in self.choices]
+            pred = {0: "A", 1: "B", 2: "C", 3: "D"}[np.argmax(choice_probs)]
+            
+            probs.append(choice_probs)
+            preds.append(pred)
+            cors.append(pred == test_df.iloc[i, 5])
+
+        acc = np.mean(cors)
+        print(f"{subject} Accuracy: {acc:.3f}")
+
+        return cors, acc, probs
+    
     def _save_results(self, subject, test_df, cors, probs):
         results_dir = path_to_results(self.args, True)
         os.makedirs(results_dir, exist_ok=True)
