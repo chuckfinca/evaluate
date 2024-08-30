@@ -8,3 +8,6 @@ BENCHMARK_CONFIG = {
 
 def get_benchmark_config(benchmark_name):
     return BENCHMARK_CONFIG.get(benchmark_name)
+
+def get_supported_benchmarks():
+    return list(BENCHMARK_CONFIG.keys())

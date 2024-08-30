@@ -10,6 +10,7 @@ import sys
 from models.huggingface_model import HuggingFaceModel
 from orchestrators.mmlu_benchmark_orchestrator import MMLUBenchmarkOrchestrator
 from benchmarks.benchmark_setup import setup_benchmark
+from benchmarks.benchmark_config import get_supported_benchmarks
 from visualizers.chart_creator import create_mmlu_comparison_chart
 
 from dotenv import load_dotenv
@@ -20,7 +21,8 @@ def parse_args():
         description="Evaluate a model on a specified benchmark",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument("--benchmark_name", type=str, help="Name of the benchmark (e.g., 'mmlu', 'hellaswag')")
+    parser.add_argument("--benchmark_name", type=str, help="Name of the benchmark (e.g., 'mmlu'). Use --list_benchmarks to see supported benchmarks.")
+    parser.add_argument("--list_benchmarks", action="store_true", help="List all supported benchmarks and exit")
     parser.add_argument("--model_name", type=str, help="Name or path of the model to evaluate")
     parser.add_argument("--reported_score", type=str, help="The official reported score for the benchmark, if available")
     parser.add_argument("--project_root", type=str, default=os.path.dirname(os.path.abspath(__file__)), help="Path to the project folder")
@@ -29,7 +31,15 @@ def parse_args():
     parser.add_argument("--batch_size", type=int, default=1, help="Batch size for evaluation")
     parser.add_argument("--config", type=str, help="Path to JSON configuration file")
 
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if args.list_benchmarks:
+        print("Supported benchmarks:")
+        for benchmark in get_supported_benchmarks():
+            print(f"- {benchmark}")
+        sys.exit(0)
+
+    return args
 
 def load_config(config_path):
     with open(config_path, 'r') as f:
