@@ -49,12 +49,11 @@ def load_config(config_path):
 def check_required_args(args):
     required_args = ['benchmark_name', 'model_name']
     missing_args = [arg for arg in required_args if getattr(args, arg) is None]
+
     if missing_args:
         raise ValueError(f"Missing required arguments: {', '.join(missing_args)}")
-    
-    # Check if main.py exists in the project root
-    main_py_path = os.path.join(args.project_root, 'main.py')
-    if not os.path.isfile(main_py_path):
+
+
 def main(args):
 
     # TODO: remove once evaluations work
