@@ -7,10 +7,8 @@ import argparse
 import json
 import os
 import sys
-from processors.result_processor import calculate_score, extract_correctness_results_from, path_to_results
 from models.huggingface_model import HuggingFaceModel
 from orchestrators.mmlu_benchmark_orchestrator import MMLUBenchmarkOrchestrator
-from config import add_to_sys_path, get_evaluation_project_path
 from benchmarks.benchmark_setup import setup_benchmark
 from visualizers.chart_creator import create_mmlu_comparison_chart
 
@@ -69,10 +67,6 @@ def main(args):
 
     # Set up the benchmark if it's not already present
     setup_benchmark(args.benchmark_name, project_root)
-
-    # Add the specific benchmark/evaluation code's folder to sys.path
-    path = get_evaluation_project_path(args.benchmark_name)
-    add_to_sys_path(path)
 
     print(f"Running evaluation '{args.benchmark_name}' with:")
     print(f"Model: {args.model_name}")

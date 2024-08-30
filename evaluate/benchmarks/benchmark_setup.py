@@ -11,18 +11,18 @@ def setup_benchmark(benchmark_name, project_root):
     if not config:
         raise ValueError(f"Benchmark '{benchmark_name}' is not supported.")
 
-    benchmark_path = os.path.join(project_root, 'benchmarks', 'benchmarks')
+    benchmark_path = os.path.join(project_root, 'benchmarks', 'benchmarks', benchmark_name)
     os.makedirs(benchmark_path, exist_ok=True)
 
     # Download and extract code
-    code_path = os.path.join(benchmark_path, benchmark_name, 'code')
+    code_path = os.path.join(benchmark_path, 'code')
     os.makedirs(code_path, exist_ok=True)
 
     if not os.listdir(code_path):  # Check if directory is empty
         _download_and_extract(config['code_url'], code_path, is_zip=True)
 
     # Download and extract data
-    data_path = os.path.join(benchmark_path, benchmark_name, 'data')
+    data_path = os.path.join(benchmark_path, 'data')
     os.makedirs(data_path, exist_ok=True)
 
     if not os.listdir(data_path):  # Check if directory is empty
