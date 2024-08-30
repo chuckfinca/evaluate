@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import sys
+from .config import PROJECT_ROOT
 from models.huggingface_model import HuggingFaceModel
 from orchestrators.mmlu_benchmark_orchestrator import MMLUBenchmarkOrchestrator
 from benchmarks.benchmark_setup import setup_benchmark
@@ -46,7 +47,7 @@ def load_config(config_path):
         return json.load(f)
 
 def check_required_args(args):
-    required_args = ['benchmark_name', 'model_name', 'project_root']
+    required_args = ['benchmark_name', 'model_name']
     missing_args = [arg for arg in required_args if getattr(args, arg) is None]
     if missing_args:
         raise ValueError(f"Missing required arguments: {', '.join(missing_args)}")
@@ -54,17 +55,11 @@ def check_required_args(args):
     # Check if main.py exists in the project root
     main_py_path = os.path.join(args.project_root, 'main.py')
     if not os.path.isfile(main_py_path):
-        raise ValueError(f"Invalid project root: {args.project_root}. Please provide the path to the project root where main.py can be found.")
-
-
-
 def main(args):
 
-    project_root = args.project_root
-
     # TODO: remove once evaluations work
-    if os.path.exists(os.path.join(project_root, "test_config.py")):
-        args.config = os.path.join(project_root, "test_config.py")
+    if os.path.exists(os.path.join(PROJECT_ROOT, "test_config.py")):
+        args.config = os.path.join(PROJECT_ROOT, "test_config.py")
 
         # Set args from config if supplied
         if args.config:
@@ -76,7 +71,7 @@ def main(args):
     check_required_args(args)
 
     # Set up the benchmark if it's not already present
-    setup_benchmark(args.benchmark_name, project_root)
+    setup_benchmark(args.benchmark_name, PROJECT_ROOT)
 
     print(f"Running evaluation '{args.benchmark_name}' with:")
     print(f"Model: {args.model_name}")
@@ -86,11 +81,11 @@ def main(args):
     print(f"Batch size: {args.batch_size}")
     
     model = HuggingFaceModel(args)
-    evaluator = MMLUBenchmarkOrchestrator(model.model, model.tokenizer, args, project_root)
     realized_acc = evaluator.evaluate()
 
     if args.reported_score is not None:
         create_mmlu_comparison_chart(realized_acc, args.reported_score, args)
+    evaluator = MMLUBenchmarkOrchestrator(model.model, model.tokenizer, args, PROJECT_ROOT)
 
 if __name__ == "__main__":
     args = parse_args()
