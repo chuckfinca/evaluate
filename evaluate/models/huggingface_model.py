@@ -1,5 +1,4 @@
 import os
-from aiohttp.web_routedef import static
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -12,6 +11,14 @@ class HuggingFaceModel():
         if not self.token:
             raise ValueError("HF_TOKEN not found in .env file at the root of the project")
 
+        # Set the device
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"Device: {self.device}")
+
+        # Determine the appropriate dtype
+        self.dtype = torch.float32 if self.device.type == 'cpu' else torch.float16
+        print(f"Using dtype: {self.dtype}")
+
         self.local_model_path = os.path.join(args.project_root, 'models', "saved", args.model_name)
 
         if self._is_model_saved():
@@ -19,10 +26,7 @@ class HuggingFaceModel():
         else:
             self._download_and_save_model()
 
-        # Set the device
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        print(f"Device: {self.device}")
-        self.model.to(self.device)
+        self.model.to(self.device).to(self.dtype)
     
     def _is_model_saved(self):
         return os.path.exists(self.local_model_path)
@@ -30,7 +34,8 @@ class HuggingFaceModel():
     def _setup_model(self, model_path):
         return AutoModelForCausalLM.from_pretrained(
             model_path,
-            torch_dtype=torch.float16  # This uses less memory
+            # low_cpu_mem_usage=True,
+            torch_dtype=self.dtype
         )
 
     def _load_local_model(self):
