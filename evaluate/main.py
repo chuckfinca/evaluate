@@ -25,11 +25,7 @@ def parse_args():
     parser.add_argument("--benchmark_name", type=str, help="Name of the benchmark (e.g., 'mmlu'). Use --list_benchmarks to see supported benchmarks.")
     parser.add_argument("--list_benchmarks", action="store_true", help="List all supported benchmarks and exit")
     parser.add_argument("--model_name", type=str, help="Name or path of the model to evaluate")
-    parser.add_argument("--reported_score", type=str, help="The official reported score for the benchmark, if available")
-    parser.add_argument("--project_root", type=str, default=os.path.dirname(os.path.abspath(__file__)), help="Path to the project folder")
-    parser.add_argument("--ntrain", type=int, default=5, help="Number of examples to use for few-shot learning")
-    parser.add_argument("--max_length", type=int, default=2048, help="Maximum length for generated sequences")
-    parser.add_argument("--batch_size", type=int, default=1, help="Batch size for evaluation")
+    parser.add_argument("--nshot", type=int, default=5, help="Number (n) of examples to use for n-shot learning")
     parser.add_argument("--config", type=str, help="Path to JSON configuration file")
 
     args = parser.parse_args()
@@ -75,16 +71,12 @@ def main(args):
     print(f"Running evaluation '{args.benchmark_name}' with:")
     print(f"Model: {args.model_name}")
     print(f"Reported Score: {args.reported_score}")
-    print(f"Number of training examples: {args.ntrain}")
-    print(f"Max length: {args.max_length}")
-    print(f"Batch size: {args.batch_size}")
+    print(f"Number of training examples: {args.nshot}")
     
     model = HuggingFaceModel(args)
-    realized_acc = evaluator.evaluate()
-
-    if args.reported_score is not None:
-        create_mmlu_comparison_chart(realized_acc, args.reported_score, args)
     evaluator = MMLUBenchmarkOrchestrator(model.model, model.tokenizer, args, PROJECT_ROOT)
+    score = evaluator.evaluate()
+    return score
 
 if __name__ == "__main__":
     args = parse_args()

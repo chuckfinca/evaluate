@@ -37,7 +37,7 @@ class MMLUBenchmarkOrchestrator:
 
         all_cors = []
         for subject in subjects:
-            dev_df = pd.read_csv(os.path.join(self.data_folder_path, "dev", f"{subject}_dev.csv"), header=None)[:self.args.ntrain]
+            dev_df = pd.read_csv(os.path.join(self.data_folder_path, "dev", f"{subject}_dev.csv"), header=None)[:self.args.nshot]
             test_df = pd.read_csv(os.path.join(self.data_folder_path, "test", f"{subject}_test.csv"), header=None)
 
             cors, acc, probs = self._eval_subject(subject, dev_df, test_df)
