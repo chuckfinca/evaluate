@@ -14,7 +14,6 @@ class MMLUBenchmarkOrchestrator:
         self.choices = ["A", "B", "C", "D"]
 
         self.categories = self._import_module('categories', f'benchmarks.benchmarks.{args.benchmark_name}.code')
-        # self.evaluate_module = self._import_module('evaluate_causal_lm', 'benchmarks.custom_evaluators')
         
         # Base path for the benchmark data
         self.data_folder_path = os.path.join(project_root, f'benchmarks/benchmarks/{args.benchmark_name}/data')
@@ -99,7 +98,7 @@ class MMLUBenchmarkOrchestrator:
         os.makedirs(results_dir, exist_ok=True)
 
         test_df["correct"] = cors
-        for j, choice in enumerate(self.evaluate_module.choices):
+        for j, choice in enumerate(self.choices):
             test_df[f"choice{choice}_probs"] = [p[j] for p in probs]
 
         test_df.to_csv(os.path.join(results_dir, f"{subject}.csv"), index=None)
