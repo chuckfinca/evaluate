@@ -26,7 +26,7 @@ def parse_args():
     parser.add_argument("--benchmark_name", type=str, help="Name of the benchmark (e.g., 'mmlu'). Use --list_benchmarks to see supported benchmarks.")
     parser.add_argument("--list_benchmarks", action="store_true", help="List all supported benchmarks and exit")
     parser.add_argument("--model_name", type=str, help="Name or path of the model to evaluate")
-    parser.add_argument("--nshot", type=int, default=5, help="Number (n) of examples to use for n-shot learning")
+    parser.add_argument("--nshot", type=int, default=0, help="Number (n) of examples to use for n-shot learning")
     parser.add_argument("--config", type=str, help="Path to JSON configuration file")
 
     args = parser.parse_args()
@@ -75,8 +75,7 @@ def main(args):
     
     model = HuggingFaceModel(args.model_name, PROJECT_ROOT)
     evaluator = MMLUBenchmarkOrchestrator(model.model, model.tokenizer, args.benchmark_name, args.model_name, args.nshot, PROJECT_ROOT)
-    score = evaluator.evaluate()
-    return score
+    evaluator.evaluate()
 
 if __name__ == "__main__":
     args = parse_args()

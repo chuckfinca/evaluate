@@ -49,9 +49,9 @@ class MMLUBenchmarkOrchestrator:
             all_cors.append(cors)
 
         average_acc = calculate_score(all_cors)
-        print(f"Average accuracy: {average_acc:.3f}")
+        self.save_score(average_acc)
 
-        return average_acc
+        print(f"Average accuracy: {average_acc:.3f}")
 
     def format_example(self, df, idx, include_answer=True):
         prompt = df.iloc[idx, 0]
@@ -105,3 +105,12 @@ class MMLUBenchmarkOrchestrator:
             test_df[f"choice{choice}_probs"] = [p[j] for p in probs]
 
         test_df.to_csv(os.path.join(results_dir, f"{subject}.csv"), index=None)
+
+    def save_score(self, average_acc):
+        results_dir = path_to_results(self.project_root, self.benchmark_name, self.model_name, False)
+        score_file_path = os.path.join(results_dir, f"{self.benchmark_name}_score.txt")
+        
+        with open(score_file_path, 'w') as f:
+            f.write(f"{average_acc:.3f}")
+        
+        print(f"Score saved to: {score_file_path}")
