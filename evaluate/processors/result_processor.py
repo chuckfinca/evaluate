@@ -2,8 +2,8 @@ import os
 import pandas as pd
 import numpy as np
 
-def path_to_results(args, raw):
-    path = os.path.join(args.project_root, "benchmarks", "benchmarks", args.benchmark_name, "results", args.model_name)
+def path_to_results(project_root, benchmark_name, model_name, raw):
+    path = os.path.join(project_root, "benchmarks", "benchmarks", benchmark_name, "results", model_name)
     if raw:
         path = os.path.join(path, 'raw')
 

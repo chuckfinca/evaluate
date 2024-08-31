@@ -4,8 +4,8 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 class HuggingFaceModel():
 
-    def __init__(self, args):
-        self.model_name = args.model_name
+    def __init__(self, model_name, project_root):
+        self.model_name = model_name
         self.token = os.getenv('HF_TOKEN')
 
         if not self.token:
@@ -19,7 +19,7 @@ class HuggingFaceModel():
         self.dtype = torch.float32 if self.device.type == 'cpu' else torch.float16
         print(f"Using dtype: {self.dtype}")
 
-        self.local_model_path = os.path.join(args.project_root, 'models', "saved", args.model_name)
+        self.local_model_path = os.path.join(project_root, 'models', "saved", model_name)
 
         if self._is_model_saved():
             self._load_local_model()

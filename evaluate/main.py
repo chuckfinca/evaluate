@@ -7,7 +7,6 @@ import argparse
 import json
 import os
 import sys
-from .config import PROJECT_ROOT
 from models.huggingface_model import HuggingFaceModel
 from orchestrators.mmlu_benchmark_orchestrator import MMLUBenchmarkOrchestrator
 from benchmarks.benchmark_setup import setup_benchmark
@@ -16,6 +15,8 @@ from visualizers.chart_creator import create_mmlu_comparison_chart
 
 from dotenv import load_dotenv
 load_dotenv()
+
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -70,11 +71,10 @@ def main(args):
 
     print(f"Running evaluation '{args.benchmark_name}' with:")
     print(f"Model: {args.model_name}")
-    print(f"Reported Score: {args.reported_score}")
     print(f"Number of training examples: {args.nshot}")
     
-    model = HuggingFaceModel(args)
-    evaluator = MMLUBenchmarkOrchestrator(model.model, model.tokenizer, args, PROJECT_ROOT)
+    model = HuggingFaceModel(args.model_name, PROJECT_ROOT)
+    evaluator = MMLUBenchmarkOrchestrator(model.model, model.tokenizer, args.benchmark_name, args.model_name, args.nshot, PROJECT_ROOT)
     score = evaluator.evaluate()
     return score
 

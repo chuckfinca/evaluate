@@ -7,16 +7,19 @@ import torch
 from processors.result_processor import calculate_score, path_to_results
 
 class MMLUBenchmarkOrchestrator:
-    def __init__(self, model, tokenizer, args, project_root):
+    def __init__(self, model, tokenizer, benchmark_name, model_name, nshot, project_root):
         self.model = model
         self.tokenizer = tokenizer
-        self.args = args
+        self.benchmark_name = benchmark_name
+        self.model_name = model_name
+        self.nshot = nshot
+        self.project_root = project_root
         self.choices = ["A", "B", "C", "D"]
 
-        self.categories = self._import_module('categories', f'benchmarks.benchmarks.{args.benchmark_name}.code')
+        self.categories = self._import_module('categories', f'benchmarks.benchmarks.{benchmark_name}.code')
         
         # Base path for the benchmark data
-        self.data_folder_path = os.path.join(project_root, f'benchmarks/benchmarks/{args.benchmark_name}/data')
+        self.data_folder_path = os.path.join(project_root, f'benchmarks/benchmarks/{benchmark_name}/data')
 
     def _import_module(self, module_name, module_directory):
         try:
@@ -37,7 +40,7 @@ class MMLUBenchmarkOrchestrator:
 
         all_cors = []
         for subject in subjects:
-            dev_df = pd.read_csv(os.path.join(self.data_folder_path, "dev", f"{subject}_dev.csv"), header=None)[:self.args.nshot]
+            dev_df = pd.read_csv(os.path.join(self.data_folder_path, "dev", f"{subject}_dev.csv"), header=None)[:self.nshot]
             test_df = pd.read_csv(os.path.join(self.data_folder_path, "test", f"{subject}_test.csv"), header=None)
 
             cors, acc, probs = self._eval_subject(subject, dev_df, test_df)
@@ -94,7 +97,7 @@ class MMLUBenchmarkOrchestrator:
         return cors, acc, probs
     
     def _save_results(self, subject, test_df, cors, probs):
-        results_dir = path_to_results(self.args, True)
+        results_dir = path_to_results(self.project_root, self.benchmark_name, self.model_name, True)
         os.makedirs(results_dir, exist_ok=True)
 
         test_df["correct"] = cors
