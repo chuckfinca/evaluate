@@ -11,7 +11,6 @@ from models.huggingface_model import HuggingFaceModel
 from orchestrators.mmlu_benchmark_orchestrator import MMLUBenchmarkOrchestrator
 from benchmarks.benchmark_setup import setup_benchmark
 from benchmarks.benchmark_config import get_supported_benchmarks
-from visualizers.chart_creator import create_mmlu_comparison_chart
 
 from dotenv import load_dotenv
 load_dotenv()
