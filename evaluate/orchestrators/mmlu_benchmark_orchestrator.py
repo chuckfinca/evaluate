@@ -49,11 +49,11 @@ class MMLUBenchmarkOrchestrator:
             all_cors.append(cors)
 
         average_acc = calculate_score(all_cors)
-        self.save_score(average_acc)
+        self._save_score(average_acc)
 
         print(f"Average accuracy: {average_acc:.3f}")
 
-    def format_example(self, df, idx, include_answer=True):
+    def _format_example(self, df, idx, include_answer=True):
         prompt = df.iloc[idx, 0]
         for j, choice in enumerate(self.choices):
             prompt += f"\n{choice}. {df.iloc[idx, j+1]}"
@@ -62,11 +62,11 @@ class MMLUBenchmarkOrchestrator:
             prompt += f" {df.iloc[idx, 5]}"
         return prompt
 
-    def format_prompt(self, train_df, test_df, test_idx):
+    def _format_prompt(self, dev_df, test_df, test_idx):
         prompt = "Answer the following multiple choice questions. Choose the best answer from A, B, C, or D.\n\n"
-        for i in range(len(train_df)):
-            prompt += self.format_example(train_df, i) + "\n\n"
-        prompt += self.format_example(test_df, test_idx, include_answer=False)
+        for i in range(len(dev_df)):
+            prompt += self._format_example(dev_df, i) + "\n\n"
+        prompt += self._format_example(test_df, test_idx, include_answer=False)
         return prompt
 
     def _eval_subject(self, subject, dev_df, test_df):
@@ -75,7 +75,7 @@ class MMLUBenchmarkOrchestrator:
         probs = []
 
         for i in range(len(test_df)):
-            prompt = self.format_prompt(dev_df, test_df, i)
+            prompt = self._format_prompt(dev_df, test_df, i)
             inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
             
             with torch.no_grad():
@@ -106,7 +106,7 @@ class MMLUBenchmarkOrchestrator:
 
         test_df.to_csv(os.path.join(results_dir, f"{subject}.csv"), index=None)
 
-    def save_score(self, average_acc):
+    def _save_score(self, average_acc):
         results_dir = path_to_results(self.project_root, self.benchmark_name, self.model_name, False)
         score_file_path = os.path.join(results_dir, f"{self.benchmark_name}_score.txt")
         
