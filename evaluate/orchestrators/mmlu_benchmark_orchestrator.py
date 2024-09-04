@@ -35,16 +35,16 @@ class MMLUBenchmarkOrchestrator:
             sys.exit(1)
 
     def evaluate(self):
-        test_directory = os.path.join(self.data_folder_path, 'test')
-        subjects = sorted([f.split("_test.csv")[0] for f in os.listdir(test_directory) if "_test.csv" in f])
+        test_question_directory = os.path.join(self.data_folder_path, 'test')
+        subjects = sorted([f.split("_test.csv")[0] for f in os.listdir(test_question_directory) if "_test.csv" in f])
 
         all_cors = []
         for subject in subjects:
-            dev_df = pd.read_csv(os.path.join(self.data_folder_path, "dev", f"{subject}_dev.csv"), header=None)[:self.nshot]
-            test_df = pd.read_csv(os.path.join(self.data_folder_path, "test", f"{subject}_test.csv"), header=None)
+            example_questions_df = pd.read_csv(os.path.join(self.data_folder_path, "dev", f"{subject}_dev.csv"), header=None)[:self.nshot]
+            test_question_df = pd.read_csv(os.path.join(self.data_folder_path, "test", f"{subject}_test.csv"), header=None)
 
-            cors, acc, probs = self._eval_subject(subject, dev_df, test_df)
-            self._save_results(subject, test_df, cors, probs)
+            cors, acc, probs = self._eval_subject(subject, example_questions_df, test_question_df)
+            self._save_results(subject, test_question_df, cors, probs)
             
             all_cors.append(cors)
 
@@ -62,49 +62,54 @@ class MMLUBenchmarkOrchestrator:
             prompt += f" {df.iloc[idx, 5]}"
         return prompt
 
-    def _format_prompt(self, dev_df, test_df, test_idx):
+    def _format_prompt(self, example_questions_df, test_question_df, test_question_idx):
         prompt = "Answer the following multiple choice questions. Choose the best answer from A, B, C, or D.\n\n"
-        for i in range(len(dev_df)):
-            prompt += self._format_example(dev_df, i) + "\n\n"
-        prompt += self._format_example(test_df, test_idx, include_answer=False)
+        for i in range(len(example_questions_df)):
+            prompt += self._format_example(example_questions_df, i) + "\n\n"
+        prompt += self._format_example(test_question_df, test_question_idx, include_answer=False)
         return prompt
 
-    def _eval_subject(self, subject, dev_df, test_df):
+    def _eval_subject(self, subject, example_questions_df, test_question_df):
         cors = []
         preds = []
         probs = []
 
-        for i in range(len(test_df)):
-            prompt = self._format_prompt(dev_df, test_df, i)
-            inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
-            
-            with torch.no_grad():
-                outputs = self.model(**inputs)
-            
-            logits = outputs.logits[0, -1]
-            probs_i = torch.nn.functional.softmax(logits, dim=-1)
-            
-            choice_probs = [probs_i[self.tokenizer.encode(choice, add_special_tokens=False)[0]].item() for choice in self.choices]
-            pred = {0: "A", 1: "B", 2: "C", 3: "D"}[np.argmax(choice_probs)]
-            
-            probs.append(choice_probs)
-            preds.append(pred)
-            cors.append(pred == test_df.iloc[i, 5])
+        for i in range(len(test_question_df)):
+            probability, prediction, correctness = self._eval_question(example_questions_df, test_question_df, i)
+            probs.append(probability)
+            preds.append(prediction)
+            cors.append(correctness)
 
         acc = np.mean(cors)
         print(f"{subject} Accuracy: {acc:.3f}")
 
         return cors, acc, probs
-    
-    def _save_results(self, subject, test_df, cors, probs):
+
+    def _eval_question(self, example_questions_df, test_question_df, test_question_number):
+        prompt = self._format_prompt(example_questions_df, test_question_df, test_question_number)
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+        
+        with torch.no_grad():
+            outputs = self.model(**inputs)
+        
+        logits = outputs.logits[0, -1]
+        probs_i = torch.nn.functional.softmax(logits, dim=-1)
+        
+        choice_probs = [probs_i[self.tokenizer.encode(choice, add_special_tokens=False)[0]].item() for choice in self.choices]
+        pred = {0: "A", 1: "B", 2: "C", 3: "D"}[np.argmax(choice_probs)]
+        
+        return choice_probs, pred, pred == test_question_df.iloc[test_question_number, 5]
+
+    def _save_results(self, subject, test_question_df, cors, probs, preds):
         results_dir = path_to_results(self.project_root, self.benchmark_name, self.model_name, True)
         os.makedirs(results_dir, exist_ok=True)
 
-        test_df["correct"] = cors
+        test_question_df["correct"] = cors
+        test_question_df["prediction"] = preds
         for j, choice in enumerate(self.choices):
-            test_df[f"choice{choice}_probs"] = [p[j] for p in probs]
+            test_question_df[f"choice{choice}_probs"] = [p[j] for p in probs]
 
-        test_df.to_csv(os.path.join(results_dir, f"{subject}.csv"), index=None)
+        test_question_df.to_csv(os.path.join(results_dir, f"{subject}.csv"), index=None)
 
     def _save_score(self, average_acc):
         results_dir = path_to_results(self.project_root, self.benchmark_name, self.model_name, False)
