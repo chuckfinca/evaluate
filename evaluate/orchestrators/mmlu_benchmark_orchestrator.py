@@ -54,18 +54,20 @@ class MMLUBenchmarkOrchestrator:
         print(f"Average accuracy: {average_acc:.3f}")
 
     def _format_example(self, df, idx, include_answer=True):
-        prompt = df.iloc[idx, 0]
+        prompt = df.iloc[idx, 0] + "\n"
         for j, choice in enumerate(self.choices):
-            prompt += f"\n{choice}. {df.iloc[idx, j+1]}"
-        prompt += "\nAnswer:"
+            prompt += f"({choice}) {df.iloc[idx, j+1]}"
+            if choice != "D":
+                prompt += " "
+        prompt += "\nAnswer: "
         if include_answer:
-            prompt += f" {df.iloc[idx, 5]}"
+            prompt += f"{df.iloc[idx, 5]}"
         return prompt
 
     def _format_prompt(self, example_questions_df, test_question_df, test_question_idx):
-        prompt = "Answer the following multiple choice questions. Choose the best answer from A, B, C, or D.\n\n"
+        prompt = ""
         for i in range(len(example_questions_df)):
-            prompt += self._format_example(example_questions_df, i) + "\n\n"
+            prompt += self._format_example(example_questions_df, i) + "\n"
         prompt += self._format_example(test_question_df, test_question_idx, include_answer=False)
         return prompt
 
