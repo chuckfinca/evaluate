@@ -2,8 +2,13 @@ import os
 import pandas as pd
 import numpy as np
 
-def path_to_results(project_root, benchmark_name, model_name, raw):
-    path = os.path.join(project_root, "benchmarks", "benchmarks", benchmark_name, "results", model_name)
+from evaluate.utils.path_utils import get_benchmark_directory_path
+
+def path_to_results(benchmark_name, model_name, raw):
+    benchmark_path = get_benchmark_directory_path(benchmark_name)
+    
+    # Base path for the benchmark data
+    path = os.path.join(benchmark_path, "results", model_name)
     if raw:
         path = os.path.join(path, 'raw')
 

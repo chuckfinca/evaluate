@@ -3,16 +3,16 @@ import requests
 import zipfile
 import tarfile
 import shutil
+from evaluate.utils.path_utils import get_benchmark_directory_path
 from .benchmark_config import get_benchmark_config
 
-def setup_benchmark(benchmark_name, project_root):
+def setup_benchmark(benchmark_name, is_test=False):
 
     config = get_benchmark_config(benchmark_name)
     if not config:
         raise ValueError(f"Benchmark '{benchmark_name}' is not supported.")
-
-    benchmark_path = os.path.join(project_root, 'benchmarks', 'benchmarks', benchmark_name)
-    os.makedirs(benchmark_path, exist_ok=True)
+    
+    benchmark_path = get_benchmark_directory_path(benchmark_name, is_test)
 
     # Download and extract code
     code_path = os.path.join(benchmark_path, 'code')

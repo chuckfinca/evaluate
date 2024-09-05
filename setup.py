@@ -6,5 +6,6 @@ setup(
     packages=find_packages(exclude=["tests*"]),
     install_requires=[
         'python-dotenv>=1.0.1',
+        'platformdirs>=4.2.2'
     ],
 )

@@ -163,7 +163,4 @@ cython_debug/
 
 
 # Project specific
-evaluate/models/saved
-evaluate/benchmarks/benchmarks
-evaluate/results/
 evaluate/test_config.py

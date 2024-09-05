@@ -1,4 +1,3 @@
-
 BENCHMARK_CONFIG = {
     'mmlu': {
         'code_url': 'https://github.com/hendrycks/test/archive/refs/heads/master.zip',

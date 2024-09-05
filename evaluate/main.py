@@ -1,21 +1,16 @@
-"""
-This project uses the Measuring Massive Multitask Language Understanding (MMLU) benchmark.
-MMLU Citation: Hendrycks et al. (2021). Measuring Massive Multitask Language Understanding. ICLR 2021.
-Ethics Citation: Hendrycks et al. (2021). Aligning AI With Shared Human Values. ICLR 2021.
-"""
 import argparse
 import json
 import os
 import sys
-from models.huggingface_model import HuggingFaceModel
-from orchestrators.mmlu_benchmark_orchestrator import MMLUBenchmarkOrchestrator
-from benchmarks.benchmark_setup import setup_benchmark
-from benchmarks.benchmark_config import get_supported_benchmarks
+from evaluate.models.huggingface_model import HuggingFaceModel
+from evaluate.orchestrators.mmlu_benchmark_orchestrator import MMLUBenchmarkOrchestrator
+from evaluate.benchmarks.benchmark_setup import setup_benchmark
+from evaluate.benchmarks.benchmark_config import get_supported_benchmarks
 
 from dotenv import load_dotenv
-load_dotenv()
 
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+from evaluate.utils.module_utils import get_package_name
+load_dotenv()
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -53,8 +48,9 @@ def check_required_args(args):
 def main(args):
 
     # TODO: remove once evaluations work
-    if os.path.exists(os.path.join(PROJECT_ROOT, "test_config.py")):
-        args.config = os.path.join(PROJECT_ROOT, "test_config.py")
+    local_project_root = os.path.dirname(os.path.abspath(__file__))
+    if os.path.exists(os.path.join(local_project_root, "test_config.py")):
+        args.config = os.path.join(local_project_root, "test_config.py")
 
         # Set args from config if supplied
         if args.config:
@@ -66,14 +62,15 @@ def main(args):
     check_required_args(args)
 
     # Set up the benchmark if it's not already present
-    setup_benchmark(args.benchmark_name, PROJECT_ROOT)
+    setup_benchmark(args.benchmark_name)
 
     print(f"Running evaluation '{args.benchmark_name}' with:")
     print(f"Model: {args.model_name}")
     print(f"Number of training examples: {args.nshot}")
+    print(f"Package name: {get_package_name()}")
     
-    model = HuggingFaceModel(args.model_name, PROJECT_ROOT)
-    evaluator = MMLUBenchmarkOrchestrator(model.model, model.tokenizer, args.benchmark_name, args.model_name, args.nshot, PROJECT_ROOT)
+    model = HuggingFaceModel(args.model_name)
+    evaluator = MMLUBenchmarkOrchestrator(model.model, model.tokenizer, args.benchmark_name, args.model_name, args.nshot)
     evaluator.evaluate()
 
 if __name__ == "__main__":

@@ -1,10 +1,11 @@
 import os
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
+from evaluate.utils.path_utils import get_user_directory
 
 class HuggingFaceModel():
 
-    def __init__(self, model_name, project_root):
+    def __init__(self, model_name):
         self.model_name = model_name
         self.token = os.getenv('HF_TOKEN')
 
@@ -19,7 +20,8 @@ class HuggingFaceModel():
         self.dtype = torch.float32 if self.device.type == 'cpu' else torch.float16
         print(f"Using dtype: {self.dtype}")
 
-        self.local_model_path = os.path.join(project_root, 'models', "saved", model_name)
+        user_directory = get_user_directory()
+        self.local_model_path = os.path.join(user_directory, 'models', model_name)
 
         if self._is_model_saved():
             self._load_local_model()
