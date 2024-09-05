@@ -2,14 +2,14 @@ import argparse
 import json
 import os
 import sys
-from evaluate.models.huggingface_model import HuggingFaceModel
-from evaluate.orchestrators.mmlu_benchmark_orchestrator import MMLUBenchmarkOrchestrator
+from evaluate.models.huggingface_model_loader import HuggingFaceModelLoader
+from evaluate.orchestrators.mmlu_benchmark_orchestrator import MMLUEvaluationOrchestrator
 from evaluate.benchmarks.benchmark_setup import setup_benchmark
 from evaluate.benchmarks.benchmark_config import get_supported_benchmarks
 
 from dotenv import load_dotenv
 
-from evaluate.utils.module_utils import get_package_name
+from evaluate.utils.import_utils import get_package_name
 load_dotenv()
 
 def parse_args():
@@ -69,8 +69,8 @@ def main(args):
     print(f"Number of training examples: {args.nshot}")
     print(f"Package name: {get_package_name()}")
     
-    model = HuggingFaceModel(args.model_name)
-    evaluator = MMLUBenchmarkOrchestrator(model.model, model.tokenizer, args.benchmark_name, args.model_name, args.nshot)
+    model = HuggingFaceModelLoader(args.model_name)
+    evaluator = MMLUEvaluationOrchestrator(model.model, model.tokenizer, args.benchmark_name, args.model_name, args.nshot)
     evaluator.evaluate()
 
 if __name__ == "__main__":

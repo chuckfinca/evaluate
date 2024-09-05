@@ -1,10 +1,10 @@
 import unittest
-from evaluate.orchestrators.mmlu_benchmark_orchestrator import MMLUBenchmarkOrchestrator
+from evaluate.orchestrators.mmlu_benchmark_orchestrator import MMLUEvaluationOrchestrator
 
 class TestMMLUPromptGeneration(unittest.TestCase):
     def setUp(self):
-        # Create a minimal MMLUBenchmarkOrchestrator instance
-        self.orchestrator = MMLUBenchmarkOrchestrator(None, None, 'mmlu', None, None)
+        # Create a minimal MMLUEvaluationOrchestrator instance
+        self.orchestrator = MMLUEvaluationOrchestrator(None, None, 'mmlu', None, None)
 
     def test_prompt_generation(self):
         instructions = "These are the instructions."

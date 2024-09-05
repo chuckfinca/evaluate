@@ -2,11 +2,11 @@ import os
 import numpy as np
 import pandas as pd
 import torch
-from evaluate.processors.result_processor import calculate_score, path_to_results
-from evaluate.utils.module_utils import import_benchmark_module
-from evaluate.utils.path_utils import get_benchmark_directory_path
+from evaluate.processors.result_processor import calculate_score
+from evaluate.utils.import_utils import import_benchmark_module
+from evaluate.utils.path_utils import get_benchmark_directory, path_to_results
 
-class MMLUBenchmarkOrchestrator:
+class MMLUEvaluationOrchestrator:
     
     prompt_template = """
 {instructions}
@@ -28,7 +28,7 @@ Answer:{answer}
         self.nshot = nshot
         self.choices = ["A", "B", "C", "D"]
 
-        benchmark_path = get_benchmark_directory_path(benchmark_name)
+        benchmark_path = get_benchmark_directory(benchmark_name)
         self.categories = import_benchmark_module('categories', benchmark_path)
         
         # Base path for the benchmark data
@@ -43,7 +43,7 @@ Answer:{answer}
             example_questions_df = pd.read_csv(os.path.join(self.data_folder_path, "dev", f"{subject}_dev.csv"), header=None)[:self.nshot]
             test_question_df = pd.read_csv(os.path.join(self.data_folder_path, "test", f"{subject}_test.csv"), header=None)
 
-            cors, probs, preds = self._eval_subject(subject, example_questions_df, test_question_df)
+            cors, probs, preds = self._evaluate_subject(subject, example_questions_df, test_question_df)
             self._save_results(subject, test_question_df, cors, probs, preds)
             
             all_cors.append(cors)
@@ -53,13 +53,13 @@ Answer:{answer}
 
         print(f"Average accuracy: {average_acc:.3f}")
 
-    def _eval_subject(self, subject, example_questions_df, test_question_df):
+    def _evaluate_subject(self, subject, example_questions_df, test_question_df):
         cors = []
         preds = []
         probs = []
 
         for i in range(len(test_question_df)):
-            probability, prediction, correctness = self._eval_question(example_questions_df, test_question_df, i)
+            probability, prediction, correctness = self._evaluate_question(example_questions_df, test_question_df, i)
             probs.append(probability)
             preds.append(prediction)
             cors.append(correctness)
@@ -69,7 +69,7 @@ Answer:{answer}
 
         return cors, probs, preds
 
-    def _eval_question(self, example_questions_df, test_question_df, test_question_number, ):
+    def _evaluate_question(self, example_questions_df, test_question_df, test_question_number, ):
         prompt = self._format_prompt(example_questions_df, test_question_df, test_question_number)
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
         

@@ -2,19 +2,6 @@ import os
 import pandas as pd
 import numpy as np
 
-from evaluate.utils.path_utils import get_benchmark_directory_path
-
-def path_to_results(benchmark_name, model_name, raw):
-    benchmark_path = get_benchmark_directory_path(benchmark_name)
-    
-    # Base path for the benchmark data
-    path = os.path.join(benchmark_path, "results", model_name)
-    if raw:
-        path = os.path.join(path, 'raw')
-
-    os.makedirs(path, exist_ok=True)
-    return path
-
 def extract_correctness_results_from(results_dir):
     """
     Extract 'cors' from CSV files in the results directory.

@@ -2,11 +2,11 @@ import unittest
 import os
 import shutil
 from evaluate.benchmarks.benchmark_setup import setup_benchmark
-from evaluate.utils.path_utils import get_benchmark_directory_path, get_user_directory
+from evaluate.utils.path_utils import get_benchmark_directory, get_package_data_directory
 
 class TestBenchmarkSetup(unittest.TestCase):
     def setUp(self):
-        self.test_path = get_user_directory(for_tests=True)
+        self.test_path = get_package_data_directory(for_tests=True)
         os.makedirs(self.test_path, exist_ok=True)
 
     def tearDown(self):
@@ -20,7 +20,7 @@ class TestBenchmarkSetup(unittest.TestCase):
 
         print('Checking that code was fetched...')
         # Check if the code directory exists and is not empty
-        benchmark_path = get_benchmark_directory_path('mmlu', for_tests=True)
+        benchmark_path = get_benchmark_directory('mmlu', for_tests=True)
         code_path = os.path.join(benchmark_path, 'code')
         self.assertTrue(os.path.exists(code_path))
         self.assertTrue(len(os.listdir(code_path)) > 0)
