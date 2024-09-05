@@ -43,8 +43,8 @@ class MMLUBenchmarkOrchestrator:
             example_questions_df = pd.read_csv(os.path.join(self.data_folder_path, "dev", f"{subject}_dev.csv"), header=None)[:self.nshot]
             test_question_df = pd.read_csv(os.path.join(self.data_folder_path, "test", f"{subject}_test.csv"), header=None)
 
-            cors, acc, probs = self._eval_subject(subject, example_questions_df, test_question_df)
-            self._save_results(subject, test_question_df, cors, probs)
+            cors, probs, preds = self._eval_subject(subject, example_questions_df, test_question_df)
+            self._save_results(subject, test_question_df, cors, probs, preds)
             
             all_cors.append(cors)
 
@@ -85,7 +85,7 @@ class MMLUBenchmarkOrchestrator:
         acc = np.mean(cors)
         print(f"{subject} Accuracy: {acc:.3f}")
 
-        return cors, acc, probs
+        return cors, probs, preds
 
     def _eval_question(self, example_questions_df, test_question_df, test_question_number):
         prompt = self._format_prompt(example_questions_df, test_question_df, test_question_number)
