@@ -10,15 +10,20 @@ class MMLUEvaluationOrchestrator:
     
     prompt_template = """
 {instructions}
-{example_questions}
-{test_question}
+
+{questions}
 """
         
     question_template = """
 {question}
-(A) {choice_a} (B) {choice_b} (C) {choice_c} (D) {choice_d}
-Answer:{answer}
+A. {choice_a}
+B. {choice_b}
+C. {choice_c}
+D. {choice_d}
+Answer: {answer}
 """
+
+    question_separator = "\n"
     
     def __init__(self, model, tokenizer, benchmark_name, model_name, nshot):
         self.model = model
@@ -95,38 +100,27 @@ Answer:{answer}
         # Start with the original template
         template = self.prompt_template
         
-        # Handle empty instructions
-        if not instructions:
-            template = template.replace("{instructions}\n", "")
-
-        # Handle empty example questions
-        if not example_questions:
-            template = template.replace("{example_questions}\n", "")
-
-        # Format example questions if they exist
-        if example_questions:
-            formatted_examples = example_questions[0] + "\n" + "\n".join(example_questions[1:])
-        else:
-            formatted_examples = ""
+        # Create the question list from the examples and test question
+        questions = example_questions + [test_question]
+        formatted_questions = self.question_separator.join(questions)
 
         return template.format(
             instructions=instructions,
-            example_questions=formatted_examples,
-            test_question=test_question
+            questions=formatted_questions
         ).strip()
     
     def _format_question_template(self, question, choices, answer=None):
         return self.question_template.format(
-            question=question,
-            choice_a=choices[self.choices[0]],
-            choice_b=choices[self.choices[1]],
-            choice_c=choices[self.choices[2]],
-            choice_d=choices[self.choices[3]],
-            answer= " " + answer if answer is not None else ""
+            question = question,
+            choice_a = choices[self.choices[0]],
+            choice_b = choices[self.choices[1]],
+            choice_c = choices[self.choices[2]],
+            choice_d = choices[self.choices[3]],
+            answer = answer if answer is not None else ""
         )
     
     def _format_prompt(self, example_questions_df, test_question_df, test_question_idx):
-        instructions = f"Answer the following multiple choice questions. For each, generate the best choice character: {self.choices[0]}, {self.choices[1]}, {self.choices[2]}, or {self.choices[3]}."
+        instructions = "Answer the following multiple choice questions. Choose the best answer from A, B, C, or D."
         example_prompts = []
         for i in range(len(example_questions_df)):
             example_prompts.append(self._format_question(example_questions_df, i, True))
