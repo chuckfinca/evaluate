@@ -59,18 +59,25 @@ Answer:{answer}
         probs = []
 
         for i in range(len(test_question_df)):
-            probability, prediction, correctness = self._evaluate_question(example_questions_df, test_question_df, i)
+            
+            # log the first question prompt as a sanity check
+            log_example_prompt = True
+            probability, prediction, correctness = self._evaluate_question(example_questions_df, test_question_df, i, log_example_prompt)
             probs.append(probability)
             preds.append(prediction)
             cors.append(correctness)
+            if log_example_prompt:
+                log_example_prompt = False
 
         acc = np.mean(cors)
         print(f"{subject} Accuracy: {acc:.3f}")
 
         return cors, probs, preds
 
-    def _evaluate_question(self, example_questions_df, test_question_df, test_question_number, ):
+    def _evaluate_question(self, example_questions_df, test_question_df, test_question_number, log_prompt):
         prompt = self._format_prompt(example_questions_df, test_question_df, test_question_number)
+        if log_prompt:
+            print(f"prompt: {prompt}")
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
         
         with torch.no_grad():
