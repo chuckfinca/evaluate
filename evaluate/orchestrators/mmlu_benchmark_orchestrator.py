@@ -12,13 +12,13 @@ class MMLUEvaluationOrchestrator:
 {instructions}
 {example_questions}
 {test_question}
-""".strip()
+"""
         
     question_template = """
 {question}
 (A) {choice_a} (B) {choice_b} (C) {choice_c} (D) {choice_d}
 Answer:{answer}
-""".strip()
+"""
     
     def __init__(self, model, tokenizer, benchmark_name, model_name, nshot):
         self.model = model
@@ -80,7 +80,7 @@ Answer:{answer}
         probs_i = torch.nn.functional.softmax(logits, dim=-1)
         
         choice_probs = [probs_i[self.tokenizer.encode(choice, add_special_tokens=False)[0]].item() for choice in self.choices]
-        pred = {0: "A", 1: "B", 2: "C", 3: "D"}[np.argmax(choice_probs)]
+        pred = {0: self.choices[0], 1: self.choices[1], 2: self.choices[2], 3: self.choices[3]}[np.argmax(choice_probs)]
         
         return choice_probs, pred, pred == test_question_df.iloc[test_question_number, 5]
     
@@ -111,15 +111,15 @@ Answer:{answer}
     def _format_question_template(self, question, choices, answer=None):
         return self.question_template.format(
             question=question,
-            choice_a=choices['A'],
-            choice_b=choices['B'],
-            choice_c=choices['C'],
-            choice_d=choices['D'],
+            choice_a=choices[self.choices[0]],
+            choice_b=choices[self.choices[1]],
+            choice_c=choices[self.choices[2]],
+            choice_d=choices[self.choices[3]],
             answer= " " + answer if answer is not None else ""
         )
     
     def _format_prompt(self, example_questions_df, test_question_df, test_question_idx):
-        instructions = ""
+        instructions = f"Answer the following multiple choice questions. For each, generate the best choice character: {self.choices[0]}, {self.choices[1]}, {self.choices[2]}, or {self.choices[3]}."
         example_prompts = []
         for i in range(len(example_questions_df)):
             example_prompts.append(self._format_question(example_questions_df, i, True))
@@ -137,10 +137,10 @@ Answer:{answer}
         
         question = row[0]
         choices = {
-                'A': row[1],
-                'B': row[2],
-                'C': row[3],
-                'D': row[4]
+                self.choices[0]: row[1],
+                self.choices[1]: row[2],
+                self.choices[2]: row[3],
+                self.choices[3]: row[4]
             }
         answer = row[5] if include_answer else None
         
