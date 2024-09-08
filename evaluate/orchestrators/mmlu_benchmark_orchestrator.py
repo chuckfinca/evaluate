@@ -13,7 +13,7 @@ class MMLUEvaluationOrchestrator:
 """
         
     question_template = """{question}
-{label_a}. {choice_a} {label_b}. {choice_b} {label_c}. {choice_c} {label_d}. {choice_d}
+({label_a}) {choice_a} ({label_b}) {choice_b} ({label_c}) {choice_c} ({label_d}) {choice_d}
 Answer: {answer}
 """
 
@@ -119,7 +119,7 @@ Answer: {answer}
         )
     
     def _format_prompt(self, example_questions_df, test_question_df, test_question_idx):
-        instructions = ""
+        instructions = "Answer the following multiple choice questions. Choose the best answer from A, B, C, or D."
         example_prompts = []
         for i in range(len(example_questions_df)):
             example_prompts.append(self._format_question(example_questions_df, i, True))
