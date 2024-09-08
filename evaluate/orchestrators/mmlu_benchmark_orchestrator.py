@@ -13,7 +13,7 @@ class MMLUEvaluationOrchestrator:
 """
         
     question_template = """{question}
-({label_a}) {choice_a}  ({label_b}) {choice_b} ({label_c}) {choice_c} ({label_d}) {choice_d}
+{label_a}. {choice_a} {label_b}. {choice_b} {label_c}. {choice_c} {label_d}. {choice_d}
 Answer: {answer}
 """
 
@@ -75,7 +75,7 @@ Answer: {answer}
     def _evaluate_question(self, subject, example_questions_df, test_question_df, test_question_number, log_prompt):
         prompt = self._format_prompt(example_questions_df, test_question_df, test_question_number)
         if log_prompt:
-            print(f"------ prompt ({subject}):")
+            print(f"\n------ prompt ({subject}):")
             print(prompt)
             print("------")
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
