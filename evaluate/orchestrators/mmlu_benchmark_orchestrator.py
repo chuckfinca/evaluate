@@ -9,15 +9,11 @@ from evaluate.utils.path_utils import get_benchmark_directory, path_to_results
 class MMLUEvaluationOrchestrator:
     
     prompt_template = """{instructions}
-
 {questions}
 """
         
     question_template = """{question}
-A. {choice_a}
-B. {choice_b}
-C. {choice_c}
-D. {choice_d}
+(A) {choice_a}  (B) {choice_b} (C) {choice_c} (D) {choice_d}
 Answer: {answer}
 """
 
@@ -119,7 +115,7 @@ Answer: {answer}
         )
     
     def _format_prompt(self, example_questions_df, test_question_df, test_question_idx):
-        instructions = "Answer the following multiple choice questions. Choose the best answer from A, B, C, or D."
+        instructions = ""
         example_prompts = []
         for i in range(len(example_questions_df)):
             example_prompts.append(self._format_question(example_questions_df, i, True))
