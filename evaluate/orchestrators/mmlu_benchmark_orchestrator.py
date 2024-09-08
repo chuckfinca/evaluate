@@ -13,7 +13,7 @@ class MMLUEvaluationOrchestrator:
 """
         
     question_template = """{question}
-(A) {choice_a}  (B) {choice_b} (C) {choice_c} (D) {choice_d}
+({label_a}) {choice_a}  ({label_b}) {choice_b} ({label_c}) {choice_c} ({label_d}) {choice_d}
 Answer: {answer}
 """
 
@@ -107,6 +107,10 @@ Answer: {answer}
     def _format_question_template(self, question, choices, answer=None):
         return self.question_template.format(
             question = question,
+            label_a = self.choices[0],
+            label_b = self.choices[1],
+            label_c = self.choices[2],
+            label_d = self.choices[3],
             choice_a = choices[self.choices[0]],
             choice_b = choices[self.choices[1]],
             choice_c = choices[self.choices[2]],
