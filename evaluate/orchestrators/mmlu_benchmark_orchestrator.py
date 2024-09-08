@@ -43,7 +43,6 @@ Answer: {answer}
 
         all_cors = []
         for subject in subjects:
-            print(f"Subject: {subject}")
             example_questions_df = pd.read_csv(os.path.join(self.data_folder_path, "dev", f"{subject}_dev.csv"), header=None)[:self.nshot]
             test_question_df = pd.read_csv(os.path.join(self.data_folder_path, "test", f"{subject}_test.csv"), header=None)
 
@@ -65,7 +64,7 @@ Answer: {answer}
         # log the prompt for the first question for each subject as a sanity check
         log_example_prompt = True
         for i in range(len(test_question_df)):
-            probability, prediction, correctness = self._evaluate_question(example_questions_df, test_question_df, i, log_example_prompt)
+            probability, prediction, correctness = self._evaluate_question(subject, example_questions_df, test_question_df, i, log_example_prompt)
             probs.append(probability)
             preds.append(prediction)
             cors.append(correctness)
@@ -77,10 +76,10 @@ Answer: {answer}
 
         return cors, probs, preds
 
-    def _evaluate_question(self, example_questions_df, test_question_df, test_question_number, log_prompt):
+    def _evaluate_question(self, subject, example_questions_df, test_question_df, test_question_number, log_prompt):
         prompt = self._format_prompt(example_questions_df, test_question_df, test_question_number)
         if log_prompt:
-            print(f"prompt:")
+            print(f"------ prompt ({subject}):")
             print(prompt)
             print("------")
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
