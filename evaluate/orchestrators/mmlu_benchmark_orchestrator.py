@@ -120,12 +120,7 @@ Answer: {answer}
     
     def _format_prompt(self, example_questions_df, test_question_df, test_question_idx):
         instructions = f"""
-Use the following chain-of-thought steps to generate the best choice character: {self.choices[0]}, {self.choices[1]}, {self.choices[2]}, or {self.choices[3]}:
-1) Identify the key topic of the question
-2) Recall relevant facts about the topic
-3) Consider each answer option briefly
-4) Choose the most likely answer
-5) Give a short explanation for the choice
+Use chain-of-thought reasoning to generate the best choice character: {self.choices[0]}, {self.choices[1]}, {self.choices[2]}, or {self.choices[3]}:
         """.strip()
         example_prompts = []
         for i in range(len(example_questions_df)):
