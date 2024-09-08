@@ -119,7 +119,7 @@ Answer: {answer}
         )
     
     def _format_prompt(self, example_questions_df, test_question_df, test_question_idx):
-        instructions = "Answer the following multiple choice questions. Choose the best answer from A, B, C, or D."
+        instructions = f"Answer the following multiple choice question by generating the best choice character: {self.choices[0]}, {self.choices[1]}, {self.choices[2]}, or {self.choices[3]}."
         example_prompts = []
         for i in range(len(example_questions_df)):
             example_prompts.append(self._format_question(example_questions_df, i, True))
