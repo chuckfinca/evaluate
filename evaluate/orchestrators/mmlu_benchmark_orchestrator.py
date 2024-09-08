@@ -123,7 +123,23 @@ Answer: {answer}
         )
     
     def _format_prompt(self, example_questions_df, test_question_df, test_question_idx):
-        instructions = f"Answer the following multiple choice question(s). Think through each question step-by-step and then choose the best answer from {self.choices[0]}, {self.choices[1]}, {self.choices[2]}, or {self.choices[3]}."
+        instructions = f"""
+Answer the following multiple choice question(s) by choosing the best answer from the four options provided: (A), (B), (C), or (D).
+For each question, use the following steps to think through it before answering:
+ 1) Identify the key topic and domain of the question (e.g., science, history, humanities).
+ 2) Consider relevant information about the topic based on the question and options provided.
+ 3) Briefly evaluate each answer option, eliminating unlikely choices if possible.
+ 4) Choose the most likely answer.
+ 5) Provide a concise explanation for your choice (2-3 sentences maximum).
+ 6) Rate your confidence in the answer on a scale of 1-5 (1 being least confident, 5 being most confident).
+Additional guidelines:
+ * If you're unsure, explain your reasoning for eliminating unlikely options.
+ * For technical questions, focus on definitions and key concepts.
+ * For humanities questions, consider historical context and multiple perspectives.
+ * Keep explanations brief but informative, focusing on the most crucial points.
+ * If you don't have enough information to answer confidently, state this clearly.
+Remember, it's okay to express uncertainty when appropriate. Provide your best response based on the information available in the question and answer options.
+        """.strip()
         example_prompts = []
         for i in range(len(example_questions_df)):
             example_prompts.append(self._format_question(example_questions_df, i, True))
