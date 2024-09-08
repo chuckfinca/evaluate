@@ -9,11 +9,15 @@ from evaluate.utils.path_utils import get_benchmark_directory, path_to_results
 class MMLUEvaluationOrchestrator:
     
     prompt_template = """{instructions}
+
 {questions}
 """
         
     question_template = """{question}
-({label_a}) {choice_a} ({label_b}) {choice_b} ({label_c}) {choice_c} ({label_d}) {choice_d}
+{label_a}. {choice_a}
+{label_b}. {choice_b}
+{label_c}. {choice_c}
+{label_d}. {choice_d}
 Answer: {answer}
 """
 
@@ -119,9 +123,7 @@ Answer: {answer}
         )
     
     def _format_prompt(self, example_questions_df, test_question_df, test_question_idx):
-        instructions = f"""
-Use chain-of-thought reasoning to generate the best choice character: {self.choices[0]}, {self.choices[1]}, {self.choices[2]}, or {self.choices[3]}:
-        """.strip()
+        instructions = f"Answer the following multiple choice questions. For each, generate the best choice character: {self.choices[0]}, {self.choices[1]}, {self.choices[2]}, or {self.choices[3]}."
         example_prompts = []
         for i in range(len(example_questions_df)):
             example_prompts.append(self._format_question(example_questions_df, i, True))
