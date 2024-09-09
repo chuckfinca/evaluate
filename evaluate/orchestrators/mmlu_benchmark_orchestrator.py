@@ -20,10 +20,9 @@ class MMLUEvaluationOrchestrator:
 {label_b}. {choice_b}
 {label_c}. {choice_c}
 {label_d}. {choice_d}
-Answer: {answer}
-"""
+Answer: {answer}"""
 
-    question_separator = "\n"
+    question_separator = "\n\n"
     
     def __init__(self, model, tokenizer, benchmark_name, model_name, nshot):
         self.model = model
@@ -38,6 +37,10 @@ Answer: {answer}
         
         # Base path for the benchmark data
         self.data_folder_path = os.path.join(benchmark_path, 'data')
+
+    def print_prompt_template(self):
+        example_questions = [f"{{example_{i+1}}}" for i in range(self.nshot)]
+        return self._format_prompt_template("{instructions}", example_questions, "{test question}")
 
     def evaluate(self):
         test_question_directory = os.path.join(self.data_folder_path, 'test')
@@ -110,7 +113,7 @@ Answer: {answer}
         # Create the question list from the examples and test question
         questions = example_questions + [test_question]
         formatted_questions = self.question_separator.join(questions)
-
+        
         return template.format(
             instructions=instructions,
             questions=formatted_questions
@@ -182,6 +185,7 @@ Answer: {answer}
             writer.writerow(['Macro Average Accuracy', f"{macro_avg:.3f}"])
             writer.writerow(['Micro Average Accuracy', f"{micro_avg:.3f}"])
             writer.writerow(['N-shot', self.nshot])
+            writer.writerow(['Prompt Template', self.print_prompt_template])
             writer.writerow([''])
             writer.writerow(['Subject', 'Accuracy'])
             for subject, accuracy in subject_results.items():
