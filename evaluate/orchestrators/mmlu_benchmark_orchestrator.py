@@ -134,15 +134,13 @@ Answer: {answer}"""
         )
     
     def _format_prompt(self, example_questions_df, test_question_df, test_question_idx):
-        instructions = f"""Answer the following multiple choice questions. Choose the best answer from A, B, C, or D.
-For each think through it step-by-step:
-1. Make sure you understand the question
-2. Consider relevant information
-3. Break down the problem into its pieces
-4. Solve each part
-5. Combine results to reach an answer
-6. Check your answer
-        """.strip()
+        instructions = f"""Approach this question using these steps as appropriate:
+1) Identify the question's domain and recall relevant knowledge
+2) Break down the problem if needed
+3) Consider possible answers and briefly evaluate each
+4) Choose the best answer from A, B, C, or D
+5) Briefly explain your choice and state your confidence level
+""".strip()
         example_prompts = []
         for i in range(len(example_questions_df)):
             example_prompts.append(self._format_question(example_questions_df, i, True))
