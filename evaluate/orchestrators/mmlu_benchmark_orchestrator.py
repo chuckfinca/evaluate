@@ -193,7 +193,7 @@ For each think through it step-by-step:
             writer.writerow(['Macro Average Accuracy', f"{macro_avg:.3f}"])
             writer.writerow(['Micro Average Accuracy', f"{micro_avg:.3f}"])
             writer.writerow(['N-shot', self.nshot])
-            writer.writerow(['Prompt Template', self.print_prompt_template])
+            writer.writerow(['Prompt Template', self.print_prompt_template()])
             writer.writerow([''])
             writer.writerow(['Subject', 'Accuracy'])
             for subject, accuracy in subject_results.items():
