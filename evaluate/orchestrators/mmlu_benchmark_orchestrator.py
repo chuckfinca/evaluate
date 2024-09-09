@@ -134,7 +134,15 @@ Answer: {answer}"""
         )
     
     def _format_prompt(self, example_questions_df, test_question_df, test_question_idx):
-        instructions = f"Answer the following multiple choice questions. Choose the best answer from A, B, C, or D.".strip()
+        instructions = f"""Answer the following multiple choice questions. Choose the best answer from A, B, C, or D.
+For each think through it step-by-step:
+1. Make sure you understand the question
+2. Consider relevant information
+3. Break down the problem into its pieces
+4. Solve each part
+5. Combine results to reach an answer
+6. Check your answer
+        """.strip()
         example_prompts = []
         for i in range(len(example_questions_df)):
             example_prompts.append(self._format_question(example_questions_df, i, True))
