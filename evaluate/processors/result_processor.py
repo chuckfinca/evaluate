@@ -16,8 +16,14 @@ def extract_correctness_results_from(results_dir):
                 all_cors.append(cors)
     return all_cors
 
-def calculate_score(all_cors):
+def calculate_scores(all_subject_accs, all_cors):
     """
-    Calculate the average score from all cors.
+    Calculate the macro and micro average scores.
+    
+    :param all_subject_accs: List of average accuracies for each subject
+    :param all_cors: List of all individual correctness values
+    :return: Tuple of (macro_avg, micro_avg)
     """
-    return round(np.mean(np.concatenate(all_cors)) * 100, 1)
+    macro_avg = np.mean(all_subject_accs)
+    micro_avg = np.mean(all_cors)
+    return round(macro_avg * 100, 1), round(micro_avg * 100, 1)

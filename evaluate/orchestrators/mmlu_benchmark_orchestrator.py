@@ -2,7 +2,9 @@ import os
 import numpy as np
 import pandas as pd
 import torch
-from evaluate.processors.result_processor import calculate_score
+import csv
+from datetime import datetime
+from evaluate.processors.result_processor import calculate_scores
 from evaluate.utils.import_utils import import_benchmark_module
 from evaluate.utils.path_utils import get_benchmark_directory, path_to_results
 
@@ -42,6 +44,8 @@ Answer: {answer}
         subjects = sorted([f.split("_test.csv")[0] for f in os.listdir(test_question_directory) if "_test.csv" in f])
 
         all_cors = []
+        all_subject_accs = []
+        subject_results = {}
         for subject in subjects:
             example_questions_df = pd.read_csv(os.path.join(self.data_folder_path, "dev", f"{subject}_dev.csv"), header=None)[:self.nshot]
             test_question_df = pd.read_csv(os.path.join(self.data_folder_path, "test", f"{subject}_test.csv"), header=None)
@@ -49,12 +53,16 @@ Answer: {answer}
             cors, probs, preds = self._evaluate_subject(subject, example_questions_df, test_question_df)
             self._save_results(subject, test_question_df, cors, probs, preds)
             
-            all_cors.append(cors)
+            all_cors.extend(cors)
+            subject_acc = np.mean(cors)
+            all_subject_accs.append(subject_acc)
+            subject_results[subject] = subject_acc
 
-        average_acc = calculate_score(all_cors)
-        self._save_score(average_acc)
+        macro_avg, micro_avg = calculate_scores(all_subject_accs, all_cors)
+        self._save_scores(macro_avg, micro_avg, subject_results)
 
-        print(f"Average accuracy: {average_acc:.3f}")
+        print(f"Macro average accuracy: {macro_avg:.3f}")
+        print(f"Micro average accuracy: {micro_avg:.3f}")
 
     def _evaluate_subject(self, subject, example_questions_df, test_question_df):
         cors = []
@@ -161,11 +169,22 @@ Answer: {answer}
 
         test_question_df.to_csv(os.path.join(results_dir, f"{subject}.csv"), index=None)
 
-    def _save_score(self, average_acc):
+    def _save_scores(self, macro_avg, micro_avg, subject_results):
         results_dir = path_to_results(self.benchmark_name, self.model_name, False)
-        score_file_path = os.path.join(results_dir, f"{self.benchmark_name}_score.txt")
+        score_file_path = os.path.join(results_dir, f"{self.benchmark_name}_scores.csv")
         
-        with open(score_file_path, 'w') as f:
-            f.write(f"{average_acc:.3f}")
+        with open(score_file_path, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['Metric', 'Value'])
+            writer.writerow(['Benchmark Name', self.benchmark_name])
+            writer.writerow(['Model Name', self.model_name])
+            writer.writerow(['Evaluation Date', datetime.now().isoformat()])
+            writer.writerow(['Macro Average Accuracy', f"{macro_avg:.3f}"])
+            writer.writerow(['Micro Average Accuracy', f"{micro_avg:.3f}"])
+            writer.writerow(['N-shot', self.nshot])
+            writer.writerow([''])
+            writer.writerow(['Subject', 'Accuracy'])
+            for subject, accuracy in subject_results.items():
+                writer.writerow([subject, f"{accuracy:.3f}"])
         
-        print(f"Score saved to: {score_file_path}")
+        print(f"Scores saved to: {score_file_path}")
