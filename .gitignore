@@ -163,4 +163,5 @@ cython_debug/
 
 
 # Project specific
-evaluate/test_config.py
+evaluate/dev_config.py
+evaluate/dev_prompt_template.py

@@ -1,3 +1,4 @@
+import json
 import os
 import numpy as np
 import pandas as pd
@@ -10,26 +11,23 @@ from evaluate.utils.path_utils import get_benchmark_directory, path_to_results
 
 class MMLUEvaluationOrchestrator:
     
-    prompt_template = """{instructions}
-
-{questions}
-"""
-        
-    question_template = """{question}
-{label_a}. {choice_a}
-{label_b}. {choice_b}
-{label_c}. {choice_c}
-{label_d}. {choice_d}
-Answer: {answer}"""
-
-    question_separator = "\n\n"
-    
-    def __init__(self, model, tokenizer, benchmark_name, model_name, nshot):
+    def __init__(self, model, tokenizer, benchmark_name, model_name, nshot, prompt_template):
         self.model = model
         self.tokenizer = tokenizer
         self.benchmark_name = benchmark_name
         self.model_name = model_name
         self.nshot = nshot
+        
+        # Check if prompt_template is a path to a JSON file
+        if isinstance(prompt_template, str) and prompt_template.endswith('.json'):
+            with open(prompt_template, 'r') as json_file:
+                prompt_config = json.load(json_file)
+            self.prompt_template = prompt_config.get("main_prompt_template", "")
+            self.question_template = prompt_config.get("question_template", "")
+            self.question_separator = prompt_config.get("question_separator", "\n\n")
+        else:
+            raise ValueError("The prompt template needs to be a json file")
+
         self.choices = ["A", "B", "C", "D"]
 
         benchmark_path = get_benchmark_directory(benchmark_name)
@@ -43,6 +41,9 @@ Answer: {answer}"""
         return self._format_prompt_template("{instructions}", example_questions, "{test question}")
 
     def evaluate(self):
+        print("Prompt template:")
+        print(self.print_prompt_template())
+
         test_question_directory = os.path.join(self.data_folder_path, 'test')
         subjects = sorted([f.split("_test.csv")[0] for f in os.listdir(test_question_directory) if "_test.csv" in f])
 
@@ -110,13 +111,12 @@ Answer: {answer}"""
         # Start with the original template
         template = self.prompt_template
         
-        # Create the question list from the examples and test question
-        questions = example_questions + [test_question]
-        formatted_questions = self.question_separator.join(questions)
+        formatted_example_questions = self.question_separator.join(example_questions)
         
         return template.format(
             instructions=instructions,
-            questions=formatted_questions
+            examples=formatted_example_questions,
+            question=test_question
         ).strip()
     
     def _format_question_template(self, question, choices, answer=None):
@@ -134,13 +134,14 @@ Answer: {answer}"""
         )
     
     def _format_prompt(self, example_questions_df, test_question_df, test_question_idx):
-        instructions = f"""Approach this question using these steps as appropriate:
+        instructions = f"""Approach the following question using these steps as appropriate:
 1) Identify the question's domain and recall relevant knowledge
 2) Break down the problem if needed
 3) Consider possible answers and briefly evaluate each
 4) Choose the best answer from A, B, C, or D
 5) Briefly explain your choice and state your confidence level
-""".strip()
+
+Question: """.strip()
         example_prompts = []
         for i in range(len(example_questions_df)):
             example_prompts.append(self._format_question(example_questions_df, i, True))

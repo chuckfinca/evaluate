@@ -22,6 +22,7 @@ def parse_args():
     parser.add_argument("--model_name", type=str, help="Name or path of the model to evaluate")
     parser.add_argument("--nshot", type=int, default=0, help="Number (n) of examples to use for n-shot learning")
     parser.add_argument("--config", type=str, help="Path to JSON configuration file")
+    parser.add_argument("--prompt_template", type=str, help="Path to JSON prompt template file")
 
     args = parser.parse_args()
 
@@ -49,8 +50,8 @@ def main(args):
 
     # TODO: remove once evaluations work
     local_project_root = os.path.dirname(os.path.abspath(__file__))
-    if os.path.exists(os.path.join(local_project_root, "test_config.py")):
-        args.config = os.path.join(local_project_root, "test_config.py")
+    if os.path.exists(os.path.join(local_project_root, "dev_config.py")):
+        args.config = os.path.join(local_project_root, "dev_config.py")
 
         # Set args from config if supplied
         if args.config:
@@ -70,7 +71,7 @@ def main(args):
     print(f"Package name: {get_package_name()}")
     
     model = HuggingFaceModelLoader(args.model_name)
-    evaluator = MMLUEvaluationOrchestrator(model.model, model.tokenizer, args.benchmark_name, args.model_name, args.nshot)
+    evaluator = MMLUEvaluationOrchestrator(model.model, model.tokenizer, args.benchmark_name, args.model_name, args.nshot, args.prompt_template)
     evaluator.evaluate()
 
 if __name__ == "__main__":
