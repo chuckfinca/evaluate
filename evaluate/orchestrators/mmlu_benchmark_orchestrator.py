@@ -89,7 +89,7 @@ class MMLUEvaluationOrchestrator:
         return cors, probs, preds
 
     def _evaluate_question(self, subject, example_questions_df, test_question_df, test_question_number, log_prompt):
-        prompt = self._format_prompt(example_questions_df, test_question_df, test_question_number)
+        prompt = self._format_prompt(subject, example_questions_df, test_question_df, test_question_number)
         if log_prompt:
             print(f"\n------ prompt ({subject}):")
             print(prompt)
@@ -133,13 +133,8 @@ class MMLUEvaluationOrchestrator:
             answer = answer if answer is not None else ""
         )
     
-    def _format_prompt(self, example_questions_df, test_question_df, test_question_idx):
-        instructions = f"""Approach the following question using these steps as appropriate:
-1) Identify the question's domain and recall relevant knowledge
-2) Break down the problem if needed
-3) Consider possible answers and briefly evaluate each
-4) Choose the best answer from A, B, C, or D
-5) Briefly explain your choice and state your confidence level
+    def _format_prompt(self, subject, example_questions_df, test_question_df, test_question_idx):
+        instructions = f"""Think step-by-step about the following {subject.replace("_"," ")} question. Then choose the best answer from A, B, C, or D and briefly explain your choice and state your confidence level
 
 Question: """.strip()
         example_prompts = []
