@@ -1,4 +1,3 @@
-import json
 import os
 import numpy as np
 import pandas as pd
@@ -11,30 +10,30 @@ from evaluate.utils.path_utils import get_benchmark_directory, path_to_results
 
 class MMLUEvaluationOrchestrator:
     
-    def __init__(self, model, tokenizer, benchmark_name, model_name, nshot, prompt_template):
+    def __init__(self, model, tokenizer, config):
         self.model = model
         self.tokenizer = tokenizer
-        self.benchmark_name = benchmark_name
-        self.model_name = model_name
-        self.nshot = nshot
+        self.config = config
         
-        # Check if prompt_template is a path to a JSON file
-        if isinstance(prompt_template, str) and prompt_template.endswith('.json'):
-            with open(prompt_template, 'r') as json_file:
-                prompt_config = json.load(json_file)
-            self.prompt_template = prompt_config.get("main_prompt_template", "")
-            self.question_template = prompt_config.get("question_template", "")
-            self.question_separator = prompt_config.get("question_separator", "\n\n")
-        else:
-            raise ValueError("The prompt template needs to be a json file")
-
+        self.benchmark_name = config['benchmark_name']
+        self.model_name = config['model_name']
+        self.nshot = config.get('nshot', 0)
+        
+        # Load prompt template from config
+        self.load_prompt_template(config['prompt_template'])
+        
         self.choices = ["A", "B", "C", "D"]
 
-        benchmark_path = get_benchmark_directory(benchmark_name)
+        benchmark_path = get_benchmark_directory(self.benchmark_name)
         self.categories = import_benchmark_module('categories', benchmark_path)
         
         # Base path for the benchmark data
         self.data_folder_path = os.path.join(benchmark_path, 'data')
+
+    def load_prompt_template(self, prompt_template):
+        self.prompt_template = prompt_template.get("main_prompt_template", "")
+        self.question_template = prompt_template.get("question_template", "")
+        self.question_separator = prompt_template.get("question_separator", "\n\n")
 
     def print_prompt_template(self):
         example_questions = [f"{{example_{i+1}}}" for i in range(self.nshot)]
@@ -50,9 +49,11 @@ class MMLUEvaluationOrchestrator:
         all_cors = []
         all_subject_accs = []
         subject_results = {}
-        # just test the first 7 subjects during development to iterate quicker
-        #TODO: remove restriction
-        for subject in subjects[:7]:
+        
+        if self.config['cap_subjects']:
+            subjects = subjects[:7]
+
+        for subject in subjects:
             example_questions_df = pd.read_csv(os.path.join(self.data_folder_path, "dev", f"{subject}_dev.csv"), header=None)[:self.nshot]
             test_question_df = pd.read_csv(os.path.join(self.data_folder_path, "test", f"{subject}_test.csv"), header=None)
 

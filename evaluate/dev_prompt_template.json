@@ -1,5 +1,0 @@
-{
-    "main_prompt_template": "{instructions}\n\n{examples}\n\n{question}",
-    "question_template": "{question}\n\n{label_a}. {choice_a}\n{label_b}. {choice_b}\n{label_c}. {choice_c}\n{label_d}. {choice_d}\nAnswer: {answer}",
-    "question_separator": "\n\n"
-}

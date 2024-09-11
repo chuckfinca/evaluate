@@ -1,30 +1,48 @@
 import argparse
 import json
+import logging
 import os
 import sys
 from evaluate.models.huggingface_model_loader import HuggingFaceModelLoader
 from evaluate.orchestrators.mmlu_benchmark_orchestrator import MMLUEvaluationOrchestrator
 from evaluate.benchmarks.benchmark_setup import setup_benchmark
 from evaluate.benchmarks.benchmark_config import get_supported_benchmarks
-
+from evaluate.utils.import_utils import get_package_name
 from dotenv import load_dotenv
 
-from evaluate.utils.import_utils import get_package_name
 load_dotenv()
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Evaluate a model on a specified benchmark",
+        description="Evaluate a model on a specified benchmark using a configuration file",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument("--benchmark_name", type=str, help="Name of the benchmark (e.g., 'mmlu'). Use --list_benchmarks to see supported benchmarks.")
+    parser.add_argument("config", type=str, nargs='?', help="Path to JSON configuration file")
     parser.add_argument("--list_benchmarks", action="store_true", help="List all supported benchmarks and exit")
-    parser.add_argument("--model_name", type=str, help="Name or path of the model to evaluate")
-    parser.add_argument("--nshot", type=int, default=0, help="Number (n) of examples to use for n-shot learning")
-    parser.add_argument("--config", type=str, help="Path to JSON configuration file")
-    parser.add_argument("--prompt_template", type=str, help="Path to JSON prompt template file")
+    return parser.parse_args()
 
-    args = parser.parse_args()
+def load_config(config_path):
+    with open(config_path, 'r') as f:
+        return json.load(f)
+
+def setup_logging(log_level):
+    numeric_level = getattr(logging, log_level.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError(f'Invalid log level: {log_level}')
+    logging.basicConfig(level=numeric_level, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def validate_config(config):
+    required_params = ['benchmark_name', 'model_name']
+    missing_params = [param for param in required_params if param not in config]
+    
+    if missing_params:
+        raise ValueError(f"Missing required parameters in config: {', '.join(missing_params)}")
+    
+    if config['benchmark_name'] not in get_supported_benchmarks():
+        raise ValueError(f"Unsupported benchmark: {config['benchmark_name']}")
+
+def main():
+    args = parse_args()
 
     if args.list_benchmarks:
         print("Supported benchmarks:")
@@ -32,48 +50,37 @@ def parse_args():
             print(f"- {benchmark}")
         sys.exit(0)
 
-    return args
+    if not args.config:
+        # TODO: remove once evaluations work
+        local_project_root = os.path.dirname(os.path.abspath(__file__))
+        if os.path.exists(os.path.join(local_project_root, "dev_config.json")):
+            args.config = os.path.join(local_project_root, "dev_config.json")
 
-def load_config(config_path):
-    with open(config_path, 'r') as f:
-        return json.load(f)
+    config = load_config(args.config)
 
-def check_required_args(args):
-    required_args = ['benchmark_name', 'model_name']
-    missing_args = [arg for arg in required_args if getattr(args, arg) is None]
+    try:
+        validate_config(config)
+    except ValueError as e:
+        print(f"Error in configuration: {str(e)}")
+        sys.exit(1)
 
-    if missing_args:
-        raise ValueError(f"Missing required arguments: {', '.join(missing_args)}")
+    setup_logging(config.get('log_level', 'INFO'))
 
-
-def main(args):
-
-    # TODO: remove once evaluations work
-    local_project_root = os.path.dirname(os.path.abspath(__file__))
-    if os.path.exists(os.path.join(local_project_root, "dev_config.py")):
-        args.config = os.path.join(local_project_root, "dev_config.py")
-
-        # Set args from config if supplied
-        if args.config:
-            config = load_config(args.config)
-            for key, value in config.items():
-                setattr(args, key, value)
+    logging.info(f"Running evaluation '{config['benchmark_name']}' with:")
+    logging.info(f"Model: {config['model_name']}")
+    logging.info(f"Number of training examples: {config.get('nshot', 0)}")
+    logging.info(f"Package name: {get_package_name()}")
     
-    # Check for required arguments after potentially loading from config
-    check_required_args(args)
+    setup_benchmark(config['benchmark_name'])
 
-    # Set up the benchmark if it's not already present
-    setup_benchmark(args.benchmark_name)
+    try:
+        model = HuggingFaceModelLoader(config['model_name'])
+    except ValueError as e:
+        logging.error(f"Error loading model: {str(e)}")
+        sys.exit(1)
 
-    print(f"Running evaluation '{args.benchmark_name}' with:")
-    print(f"Model: {args.model_name}")
-    print(f"Number of training examples: {args.nshot}")
-    print(f"Package name: {get_package_name()}")
-    
-    model = HuggingFaceModelLoader(args.model_name)
-    evaluator = MMLUEvaluationOrchestrator(model.model, model.tokenizer, args.benchmark_name, args.model_name, args.nshot, args.prompt_template)
+    evaluator = MMLUEvaluationOrchestrator(model.model, model.tokenizer, config)
     evaluator.evaluate()
 
 if __name__ == "__main__":
-    args = parse_args()
-    main(args)
+    main()
