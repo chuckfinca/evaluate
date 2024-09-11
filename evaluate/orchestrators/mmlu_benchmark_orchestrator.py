@@ -123,7 +123,7 @@ class MMLUEvaluationOrchestrator:
         # Check if the prediction is correct
         is_correct = pred == test_question_df.iloc[test_question_number, 5]
         
-        return choice_probs, pred, is_correct, most_likely_token
+        return choice_probs, pred, is_correct
 
     def _format_prompt_template(self, instructions, example_questions, test_question):
         # Start with the original template
