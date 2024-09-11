@@ -135,7 +135,7 @@ class MMLUEvaluationOrchestrator:
     
     def _format_prompt(self, subject, example_questions_df, test_question_df, test_question_idx):
         instructions = f"""
-Think step-by-step about the following {subject.replace("_"," ")} question. Then choose the best answer from A, B, C, or D.
+Answer the following multiple choice {subject.replace("_"," ")} questions. Choose the best answer from {self.choices[0]}, {self.choices[1]}, {self.choices[2]}, or {self.choices[3]}
 """.strip()
         example_prompts = []
         for i in range(len(example_questions_df)):
