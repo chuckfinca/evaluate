@@ -100,30 +100,12 @@ class MMLUEvaluationOrchestrator:
             outputs = self.model(**inputs)
         
         logits = outputs.logits[0, -1]
-        probs = torch.nn.functional.softmax(logits, dim=-1)
+        probs_i = torch.nn.functional.softmax(logits, dim=-1)
         
-        # Get the most likely token
-        most_likely_token_id = torch.argmax(probs).item()
-        most_likely_token = self.tokenizer.decode([most_likely_token_id])
+        choice_probs = [probs_i[self.tokenizer.encode(choice, add_special_tokens=False)[0]].item() for choice in self.choices]
+        pred = {0: self.choices[0], 1: self.choices[1], 2: self.choices[2], 3: self.choices[3]}[np.argmax(choice_probs)]
         
-        # Calculate probabilities for the choices
-        choice_probs = [probs[self.tokenizer.encode(choice, add_special_tokens=False)[0]].item() for choice in self.choices]
-        
-        # Determine the prediction
-        if most_likely_token in self.choices:
-            pred = most_likely_token
-        else:
-            pred = most_likely_token
-            print("\n------ Prompt:")
-            print(prompt)
-            print("\n------ Most likely token (not in choices):")
-            print(most_likely_token)
-            print("------")
-        
-        # Check if the prediction is correct
-        is_correct = pred == test_question_df.iloc[test_question_number, 5]
-        
-        return choice_probs, pred, is_correct
+        return choice_probs, pred, pred == test_question_df.iloc[test_question_number, 5]
 
     def _format_prompt_template(self, instructions, example_questions, test_question):
         # Start with the original template
