@@ -50,7 +50,9 @@ class MMLUEvaluationOrchestrator:
         all_cors = []
         all_subject_accs = []
         subject_results = {}
-        for subject in subjects:
+        # just test the first 7 subjects during development to iterate quicker
+        #TODO: remove restriction
+        for subject in subjects[:7]:
             example_questions_df = pd.read_csv(os.path.join(self.data_folder_path, "dev", f"{subject}_dev.csv"), header=None)[:self.nshot]
             test_question_df = pd.read_csv(os.path.join(self.data_folder_path, "test", f"{subject}_test.csv"), header=None)
 
