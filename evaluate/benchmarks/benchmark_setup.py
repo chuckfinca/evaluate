@@ -3,6 +3,7 @@ import requests
 import zipfile
 import tarfile
 import shutil
+from evaluate.logging.logger import logger
 from evaluate.utils.path_utils import get_benchmark_directory
 from .benchmark_config import get_benchmark_config
 
@@ -28,7 +29,7 @@ def setup_benchmark(benchmark_name, is_test=False):
     if not os.listdir(data_path):  # Check if directory is empty
         _download_and_extract(config['data_url'], data_path, is_zip=False)
 
-    print(f"Benchmark '{benchmark_name}' has been set up successfully.")
+    logger.log.info(f"Benchmark '{benchmark_name}' has been set up successfully.")
 
 def _download_and_extract(url, path, is_zip=True):
     
@@ -73,4 +74,4 @@ def _download_and_extract(url, path, is_zip=True):
             shutil.move(os.path.join(top_level_folder, item), path)
         os.rmdir(top_level_folder)
 
-    print(f"Extraction completed to: {path}")
+    logger.log.info(f"Extraction completed to: {path}")

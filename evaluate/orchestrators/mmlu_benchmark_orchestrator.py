@@ -7,6 +7,7 @@ from datetime import datetime
 from evaluate.processors.result_processor import calculate_scores
 from evaluate.utils.import_utils import import_benchmark_module
 from evaluate.utils.path_utils import get_benchmark_directory, path_to_results
+from evaluate.logging.logger import logger
 
 class MMLUEvaluationOrchestrator:
     
@@ -40,8 +41,8 @@ class MMLUEvaluationOrchestrator:
         return self._format_prompt_template("{instructions}", example_questions, "{test question}")
 
     def evaluate(self):
-        print("Prompt template:")
-        print(self.print_prompt_template())
+        logger.log.info("Prompt template:")
+        logger.log.info(self.print_prompt_template())
 
         test_question_directory = os.path.join(self.data_folder_path, 'test')
         subjects = sorted([f.split("_test.csv")[0] for f in os.listdir(test_question_directory) if "_test.csv" in f])
@@ -68,8 +69,8 @@ class MMLUEvaluationOrchestrator:
         macro_avg, micro_avg = calculate_scores(all_subject_accs, all_cors)
         self._save_scores(macro_avg, micro_avg, subject_results)
 
-        print(f"Macro average accuracy: {macro_avg:.3f}")
-        print(f"Micro average accuracy: {micro_avg:.3f}")
+        logger.log.info(f"Macro average accuracy: {macro_avg:.3f}")
+        logger.log.info(f"Micro average accuracy: {micro_avg:.3f}")
 
     def _evaluate_subject(self, subject, example_questions_df, test_question_df):
         cors = []
@@ -87,16 +88,16 @@ class MMLUEvaluationOrchestrator:
                 log_example_prompt = False
 
         acc = np.mean(cors)
-        print(f"{subject} Accuracy: {acc:.3f}")
+        logger.log.info(f"{subject} Accuracy: {acc:.3f}")
 
         return cors, probs, preds
 
     def _evaluate_question(self, subject, example_questions_df, test_question_df, test_question_number, log_prompt):
         prompt = self._format_prompt(subject, example_questions_df, test_question_df, test_question_number)
         if log_prompt:
-            print(f"\n------ prompt ({subject}):")
-            print(prompt)
-            print("------")
+            logger.log.info(f"\n------ prompt ({subject}):")
+            logger.log.info(prompt)
+            logger.log.info("------")
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
         
         with torch.no_grad():
@@ -196,4 +197,4 @@ Answer the following multiple choice {subject.replace("_"," ")} questions. Choos
             for subject, accuracy in subject_results.items():
                 writer.writerow([subject, f"{accuracy:.3f}"])
         
-        print(f"Scores saved to: {score_file_path}")
+        logger.log.info(f"Scores saved to: {score_file_path}")
