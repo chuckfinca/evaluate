@@ -3,10 +3,11 @@
     "model_name": "google/gemma-2b-it",
     "nshot": 0,
     "prompt_template": {
-        "main_prompt_template": "{instructions}\n\n{question}",
-        "question_template": "{question}\n{label_a}. {choice_a}\n{label_b}. {choice_b}\n{label_c}. {choice_c}\n{label_d}. {choice_d}\nAnswer: {answer}",
-        "question_separator": "\n\n"
+        "main_prompt_template": "{instructions}\n\n{examples}\n\n{question}",
+        "question_template": "Question: {question}\n{label_a}. {choice_a}\n{label_b}. {choice_b}\n{label_c}. {choice_c}\n{label_d}. {choice_d}\nAnswer: {answer}",
+        "question_separator": "\n\n",
+        "instructions": "Choose the best answer from {label_a}, {label_b}, {label_c}, or {label_d} for the following multiple choice {subject} question."
     },
     "log_level": "INFO",
-    "cap_subjects" : true
+    "cap_subjects": true
 }

@@ -35,10 +35,21 @@ class MMLUEvaluationOrchestrator:
         self.prompt_template = prompt_template.get("main_prompt_template", "")
         self.question_template = prompt_template.get("question_template", "")
         self.question_separator = prompt_template.get("question_separator", "\n\n")
+        self.instructions_template = prompt_template.get("instructions", "")
+
+    def format_instructions(self, subject="{subject}"):
+        return self.instructions_template.format(
+            subject=subject,
+            label_a=self.choices[0],
+            label_b=self.choices[1],
+            label_c=self.choices[2],
+            label_d=self.choices[3]
+        )
 
     def print_prompt_template(self):
         example_questions = [f"{{example_{i+1}}}" for i in range(self.nshot)]
-        return self._format_prompt_template("{instructions}", example_questions, "{test question}")
+        formatted_instructions = self.format_instructions()
+        return self._format_prompt_template(formatted_instructions, example_questions, "{test question}")
 
     def evaluate(self):
         logger.log.info("Prompt template:")
@@ -93,7 +104,8 @@ class MMLUEvaluationOrchestrator:
         return cors, probs, preds
 
     def _evaluate_question(self, subject, example_questions_df, test_question_df, test_question_number, log_prompt):
-        prompt = self._format_prompt(subject, example_questions_df, test_question_df, test_question_number)
+        instructions = self.format_instructions(subject.replace("_", " "))
+        prompt = self._format_prompt(instructions, example_questions_df, test_question_df, test_question_number)
         if log_prompt:
             logger.log.info(f"\n------ prompt ({subject}):")
             logger.log.info(prompt)
@@ -125,22 +137,19 @@ class MMLUEvaluationOrchestrator:
     
     def _format_question_template(self, question, choices, answer=None):
         return self.question_template.format(
-            question = question,
-            label_a = self.choices[0],
-            label_b = self.choices[1],
-            label_c = self.choices[2],
-            label_d = self.choices[3],
-            choice_a = choices[self.choices[0]],
-            choice_b = choices[self.choices[1]],
-            choice_c = choices[self.choices[2]],
-            choice_d = choices[self.choices[3]],
-            answer = answer if answer is not None else ""
+            question=question,
+            label_a=self.choices[0],
+            label_b=self.choices[1],
+            label_c=self.choices[2],
+            label_d=self.choices[3],
+            choice_a=choices[self.choices[0]],
+            choice_b=choices[self.choices[1]],
+            choice_c=choices[self.choices[2]],
+            choice_d=choices[self.choices[3]],
+            answer=answer if answer is not None else ""
         )
     
-    def _format_prompt(self, subject, example_questions_df, test_question_df, test_question_idx):
-        instructions = f"""
-Answer the following multiple choice {subject.replace("_"," ")} questions. Choose the best answer from {self.choices[0]}, {self.choices[1]}, {self.choices[2]}, or {self.choices[3]}
-""".strip()
+    def _format_prompt(self, instructions, example_questions_df, test_question_df, test_question_idx):
         example_prompts = []
         for i in range(len(example_questions_df)):
             example_prompts.append(self._format_question(example_questions_df, i, True))
