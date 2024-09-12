@@ -3,7 +3,7 @@ import requests
 import zipfile
 import tarfile
 import shutil
-from evaluate.logging.logger import logger
+from evaluate.logs.logger import logger
 from evaluate.utils.path_utils import get_benchmark_directory
 from .benchmark_config import get_benchmark_config
 

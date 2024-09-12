@@ -7,7 +7,7 @@ from datetime import datetime
 from evaluate.processors.result_processor import calculate_scores
 from evaluate.utils.import_utils import import_benchmark_module
 from evaluate.utils.path_utils import get_benchmark_directory, path_to_results
-from evaluate.logging.logger import logger
+from evaluate.logs.logger import logger
 
 class MMLUEvaluationOrchestrator:
     

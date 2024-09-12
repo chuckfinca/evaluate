@@ -1,7 +1,7 @@
 import os
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from evaluate.logging.logger import logger
+from evaluate.logs.logger import logger
 from evaluate.utils.path_utils import get_package_data_directory
 
 class HuggingFaceModelLoader():
