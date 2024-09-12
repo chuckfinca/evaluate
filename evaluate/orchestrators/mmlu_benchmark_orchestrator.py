@@ -37,15 +37,6 @@ class MMLUEvaluationOrchestrator:
         self.question_separator = prompt_template.get("question_separator", "\n\n")
         self.instructions_template = prompt_template.get("instructions", "")
 
-    def format_instructions(self, subject="{subject}"):
-        return self.instructions_template.format(
-            subject=subject,
-            label_a=self.choices[0],
-            label_b=self.choices[1],
-            label_c=self.choices[2],
-            label_d=self.choices[3]
-        )
-
     def print_prompt_template(self):
         example_questions = [f"{{example_{i+1}}}" for i in range(self.nshot)]
         formatted_instructions = self.format_instructions()
@@ -137,15 +128,15 @@ class MMLUEvaluationOrchestrator:
     
     def _format_question_template(self, question, choices, answer=None):
         return self.question_template.format(
-            question=question,
+            question=question.strip(),
             label_a=self.choices[0],
             label_b=self.choices[1],
             label_c=self.choices[2],
             label_d=self.choices[3],
-            choice_a=choices[self.choices[0]],
-            choice_b=choices[self.choices[1]],
-            choice_c=choices[self.choices[2]],
-            choice_d=choices[self.choices[3]],
+            choice_a=choices[self.choices[0]].strip(),
+            choice_b=choices[self.choices[1]].strip(),
+            choice_c=choices[self.choices[2]].strip(),
+            choice_d=choices[self.choices[3]].strip(),
             answer=answer if answer is not None else ""
         )
     
@@ -175,6 +166,15 @@ class MMLUEvaluationOrchestrator:
         answer = row[5] if include_answer else None
         
         return question, choices, answer
+
+    def format_instructions(self, subject="{subject}"):
+        return self.instructions_template.format(
+            subject=subject.replace("high_school_","").replace("college_","").replace("elementary_",""),
+            label_a=self.choices[0],
+            label_b=self.choices[1],
+            label_c=self.choices[2],
+            label_d=self.choices[3]
+        )
 
     def _save_results(self, subject, test_question_df, cors, probs, preds):
         results_dir = path_to_results(self.benchmark_name, self.model_name, True)
