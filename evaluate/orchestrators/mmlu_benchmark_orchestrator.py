@@ -133,10 +133,10 @@ class MMLUEvaluationOrchestrator:
             label_b=self.choices[1],
             label_c=self.choices[2],
             label_d=self.choices[3],
-            choice_a=choices[self.choices[0]].strip(),
-            choice_b=choices[self.choices[1]].strip(),
-            choice_c=choices[self.choices[2]].strip(),
-            choice_d=choices[self.choices[3]].strip(),
+            choice_a=choices[self.choices[0]].strip() if isinstance(choices[self.choices[0]], str) else choices[self.choices[0]],
+            choice_b=choices[self.choices[1]].strip() if isinstance(choices[self.choices[1]], str) else choices[self.choices[1]],
+            choice_c=choices[self.choices[2]].strip() if isinstance(choices[self.choices[2]], str) else choices[self.choices[2]],
+            choice_d=choices[self.choices[3]].strip() if isinstance(choices[self.choices[3]], str) else choices[self.choices[3]],
             answer=answer if answer is not None else ""
         )
     

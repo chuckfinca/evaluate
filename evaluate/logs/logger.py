@@ -1,5 +1,4 @@
 import logging
-import time
 
 class ConditionalFormatter(logging.Formatter):
     def __init__(self, *args, **kwargs):
