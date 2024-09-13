@@ -108,7 +108,7 @@ class MMLUEvaluationOrchestrator:
         for message in messages:
             role = message["role"]
             content = message["content"]
-            prompt += f"<|start_header_id|>{role}<|end_header_id|>" + (f"\n{content}<|eot_id|>\n" if content else "\n")
+            prompt += f"<|start_header_id|>{role}<|end_header_id|>" + (f"\n{content}<|eot_id|>" if content else "")
 
         if log_prompt:
             logger.log.info(f"\n------ prompt ({subject}):")
