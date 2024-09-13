@@ -96,7 +96,20 @@ class MMLUEvaluationOrchestrator:
 
     def _evaluate_question(self, subject, example_questions_df, test_question_df, test_question_number, log_prompt):
         instructions = self.format_instructions(subject.replace("_", " "))
-        prompt = self._format_prompt(instructions, example_questions_df, test_question_df, test_question_number)
+        content = self._format_prompt(instructions, example_questions_df, test_question_df, test_question_number)
+        
+        prompt = "<|begin_of_text|>"
+        
+        messages = [
+            {"role": "system", "content": "You are a helpful AI assistant."},
+            {"role": "user", "content": content},
+        ]
+        
+        for message in messages:
+            role = message["role"]
+            content = message["content"]
+            prompt += f"<|start_header_id|>{role}<|end_header_id|>\n{content}<|eot_id|>"
+        
         if log_prompt:
             logger.log.info(f"\n------ prompt ({subject}):")
             logger.log.info(prompt)
@@ -120,11 +133,12 @@ class MMLUEvaluationOrchestrator:
         
         formatted_example_questions = self.question_separator.join(example_questions)
         
-        return template.format(
+        template = template.format(
             instructions=instructions,
             examples=formatted_example_questions,
             question=test_question
         ).strip()
+    
     
     def _format_question_template(self, question, choices, answer=None):
         return self.question_template.format(
