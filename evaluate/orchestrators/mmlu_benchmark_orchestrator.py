@@ -96,12 +96,11 @@ class MMLUEvaluationOrchestrator:
 
     def _evaluate_question(self, subject, example_questions_df, test_question_df, test_question_number, log_prompt):
         instructions = self.format_instructions(subject.replace("_", " "))
-        human_readable_prompt = self._format_prompt("", example_questions_df, test_question_df, test_question_number)
-        human_readable_prompt += f"\nChoose the best answer from A, B, C, or D.\n"
+        human_readable_prompt = self._format_prompt(instructions, example_questions_df, test_question_df, test_question_number)
         prompt = "<|begin_of_text|>"
         
         messages = [
-            {"role": "system", "content": "You are a helpful AI assistant. " + instructions},
+            {"role": "system", "content": "You are a helpful AI assistant."},
             {"role": "user", "content": human_readable_prompt},
             {"role": "assistant", "content": ""}
         ]
