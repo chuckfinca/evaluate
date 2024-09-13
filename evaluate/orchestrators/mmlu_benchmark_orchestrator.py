@@ -96,20 +96,21 @@ class MMLUEvaluationOrchestrator:
 
     def _evaluate_question(self, subject, example_questions_df, test_question_df, test_question_number, log_prompt):
         instructions = self.format_instructions(subject.replace("_", " "))
-        content = self._format_prompt(instructions, example_questions_df, test_question_df, test_question_number)
-        
+        human_readable_prompt = self._format_prompt("", example_questions_df, test_question_df, test_question_number)
+        human_readable_prompt += f"\nChoose the best answer from A, B, C, or D.\n"
         prompt = "<|begin_of_text|>"
         
         messages = [
-            {"role": "system", "content": "You are a helpful AI assistant."},
-            {"role": "user", "content": content},
+            {"role": "system", "content": "You are a helpful AI assistant. " + instructions},
+            {"role": "user", "content": human_readable_prompt},
+            {"role": "assistant", "content": ""}
         ]
         
         for message in messages:
             role = message["role"]
             content = message["content"]
-            prompt += f"<|start_header_id|>{role}<|end_header_id|>\n{content}<|eot_id|>"
-        
+            prompt += f"<|start_header_id|>{role}<|end_header_id|>" + (f"\n{content}<|eot_id|>\n" if content else "\n")
+
         if log_prompt:
             logger.log.info(f"\n------ prompt ({subject}):")
             logger.log.info(prompt)
@@ -133,7 +134,7 @@ class MMLUEvaluationOrchestrator:
         
         formatted_example_questions = self.question_separator.join(example_questions)
         
-        template = template.format(
+        return template.format(
             instructions=instructions,
             examples=formatted_example_questions,
             question=test_question
