@@ -2,7 +2,7 @@ import os
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from evaluate.logs.logger import logger
-from evaluate.utils.path_utils import get_package_data_directory
+from evaluate.utils.path_utils import path_to_package_data
 
 class HuggingFaceModelLoader():
 
@@ -19,7 +19,7 @@ class HuggingFaceModelLoader():
         # Determine the appropriate dtype
         self.dtype = torch.float32 if self.device.type == 'cpu' else torch.float16
 
-        package_data_directory = get_package_data_directory()
+        package_data_directory = path_to_package_data()
         self.local_model_path = os.path.join(package_data_directory, 'models', model_name)
 
         if self._is_model_saved():

@@ -1,12 +1,13 @@
+import json
 import os
+import time
 import numpy as np
 import pandas as pd
 import torch
 import csv
-from datetime import datetime
 from evaluate.processors.result_processor import calculate_scores
 from evaluate.utils.import_utils import import_benchmark_module
-from evaluate.utils.path_utils import get_benchmark_directory, path_to_results
+from evaluate.utils.path_utils import path_to_benchmarks, path_to_raw_results, path_to_results
 from evaluate.logs.logger import logger
 
 class MMLUEvaluationOrchestrator:
@@ -25,11 +26,14 @@ class MMLUEvaluationOrchestrator:
         
         self.choices = ["A", "B", "C", "D"]
 
-        benchmark_path = get_benchmark_directory(self.benchmark_name)
+        benchmark_path = path_to_benchmarks(self.benchmark_name)
         self.categories = import_benchmark_module('categories', benchmark_path)
         
         # Base path for the benchmark data
         self.data_folder_path = os.path.join(benchmark_path, 'data')
+        
+        self.results_dir = path_to_results(self.benchmark_name, self.model_name)
+        self.raw_results_path = path_to_raw_results(self.benchmark_name, self.model_name, int(time.time()))
 
     def load_prompt_template(self, prompt_template):
         self.prompt_template = prompt_template.get("main_prompt_template", "")
@@ -65,7 +69,6 @@ class MMLUEvaluationOrchestrator:
             test_question_df = pd.read_csv(os.path.join(self.data_folder_path, "test", f"{subject}_test.csv"), header=None)
 
             cors, probs, preds = self._evaluate_subject(subject, example_questions_df, test_question_df)
-            self._save_results(subject, test_question_df, cors, probs, preds)
             
             all_cors.extend(cors)
             subject_acc = np.mean(cors)
@@ -122,12 +125,12 @@ class MMLUEvaluationOrchestrator:
         
         open_ended_generation = True
         if open_ended_generation:
-            return self._open_ended_generation(inputs, test_question_df, test_question_number)
+            return self._open_ended_generation(subject, inputs, test_question_df, test_question_number)
         else:
-            return self._inference(inputs, test_question_df, test_question_number)
+            return self._inference(subject, inputs, test_question_df, test_question_number)
             
         
-    def _open_ended_generation(self, inputs, test_question_df, test_question_number):
+    def _open_ended_generation(self, subject, inputs, test_question_df, test_question_number):
         
         with torch.no_grad():
             outputs = self.model.generate(
@@ -145,10 +148,10 @@ class MMLUEvaluationOrchestrator:
         
         logger.log.info(generated_answer)
         
-        return self._determine_correctness(generated_answer, test_question_df, test_question_number)
+        return self._determine_correctness(subject, generated_answer, test_question_df, test_question_number)
     
     
-    def _inference(self, inputs, test_question_df, test_question_number):
+    def _inference(self, subject, inputs, test_question_df, test_question_number):
         with torch.no_grad():
             outputs = self.model(**inputs)
         
@@ -158,9 +161,15 @@ class MMLUEvaluationOrchestrator:
         choice_probs = [probs_i[self.tokenizer.encode(choice, add_special_tokens=False)[0]].item() for choice in self.choices]
         pred = {0: self.choices[0], 1: self.choices[1], 2: self.choices[2], 3: self.choices[3]}[np.argmax(choice_probs)]
         
-        return choice_probs, pred, pred == test_question_df.iloc[test_question_number, 5]
+        correct_answer = test_question_df.iloc[test_question_number, 5]
+        is_correct = pred == correct_answer
 
-    def _determine_correctness(self, generated_answer, test_question_df, test_question_number):
+        # Log the inference result
+        self._log_inference_result(subject, test_question_df, test_question_number, choice_probs, pred, is_correct)
+
+        return choice_probs, pred, is_correct
+
+    def _determine_correctness(self, subject, generated_answer, test_question_df, test_question_number):
         review_prompt = f"""Review the following generated answer and determine which option (A, B, C, or D) it corresponds to. If no clear choice was made, output "None".
 
 Generated answer: {generated_answer}
@@ -181,7 +190,7 @@ Answer (A, B, C, D, or None):"""
 
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
         
-        return self._inference(inputs, test_question_df, test_question_number)
+        return self._inference(subject, inputs, test_question_df, test_question_number)
         
 
     def _format_prompt_template(self, instructions, example_questions, test_question):
@@ -247,20 +256,8 @@ Answer (A, B, C, D, or None):"""
             label_d=self.choices[3]
         )
 
-    def _save_results(self, subject, test_question_df, cors, probs, preds):
-        results_dir = path_to_results(self.benchmark_name, self.model_name, True)
-        os.makedirs(results_dir, exist_ok=True)
-
-        test_question_df["correct"] = cors
-        test_question_df["prediction"] = preds
-        for j, choice in enumerate(self.choices):
-            test_question_df[f"choice{choice}_probs"] = [p[j] for p in probs]
-
-        test_question_df.to_csv(os.path.join(results_dir, f"{subject}.csv"), index=None)
-
     def _save_scores(self, macro_avg, micro_avg, subject_results):
-        results_dir = path_to_results(self.benchmark_name, self.model_name, False)
-        score_file_path = os.path.join(results_dir, f"{self.benchmark_name}_scores.csv")
+        score_file_path = os.path.join(self.results_dir, f"{self.benchmark_name}_scores.csv")
         
         with open(score_file_path, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
@@ -278,3 +275,36 @@ Answer (A, B, C, D, or None):"""
                 writer.writerow([subject, f"{accuracy:.3f}"])
         
         logger.log.info(f"Scores saved to: {score_file_path}")
+        
+    def _log_inference_result(self, subject, test_question_df, test_question_number, choice_probs, pred, is_correct):
+        log_file_path = os.path.join(self.raw_results_path, f"inference_log.csv")
+        
+        # Prepare the row data
+        row_data = {
+            "timestamp": time.time(),
+            "subject": subject,
+            "question_number": test_question_number,
+            "question": test_question_df.iloc[test_question_number, 0],
+            "choice_A": test_question_df.iloc[test_question_number, 1],
+            "choice_B": test_question_df.iloc[test_question_number, 2],
+            "choice_C": test_question_df.iloc[test_question_number, 3],
+            "choice_D": test_question_df.iloc[test_question_number, 4],
+            "correct_answer": test_question_df.iloc[test_question_number, 5],
+            "predicted_answer": pred,
+            "is_correct": is_correct,
+            "prob_A": choice_probs[0],
+            "prob_B": choice_probs[1],
+            "prob_C": choice_probs[2],
+            "prob_D": choice_probs[3]
+        }
+
+        # Check if the file exists to determine whether to write headers
+        file_exists = os.path.isfile(log_file_path)
+        
+        with open(log_file_path, 'a', newline='', encoding='utf-8') as log_file:
+            writer = csv.DictWriter(log_file, fieldnames=row_data.keys())
+            
+            if not file_exists:
+                writer.writeheader()  # Write header if the file is newly created
+            
+            writer.writerow(row_data)

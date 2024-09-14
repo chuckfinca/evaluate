@@ -4,7 +4,7 @@ import zipfile
 import tarfile
 import shutil
 from evaluate.logs.logger import logger
-from evaluate.utils.path_utils import get_benchmark_directory
+from evaluate.utils.path_utils import path_to_benchmarks
 from .benchmark_config import get_benchmark_config
 
 def setup_benchmark(benchmark_name, is_test=False):
@@ -13,7 +13,7 @@ def setup_benchmark(benchmark_name, is_test=False):
     if not config:
         raise ValueError(f"Benchmark '{benchmark_name}' is not supported.")
     
-    benchmark_path = get_benchmark_directory(benchmark_name, is_test)
+    benchmark_path = path_to_benchmarks(benchmark_name, is_test)
 
     # Download and extract code
     code_path = os.path.join(benchmark_path, 'code')
