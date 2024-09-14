@@ -120,6 +120,35 @@ class MMLUEvaluationOrchestrator:
             logger.log.info("------")
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
         
+        open_ended_generation = True
+        if open_ended_generation:
+            return self._open_ended_generation(inputs, test_question_df, test_question_number)
+        else:
+            return self._inference(inputs, test_question_df, test_question_number)
+            
+        
+    def _open_ended_generation(self, inputs, test_question_df, test_question_number):
+        
+        with torch.no_grad():
+            outputs = self.model.generate(
+                **inputs,
+                max_new_tokens=500,
+                temperature=0.7,
+                top_p=0.9,
+                do_sample=True
+            )
+        
+        generated_answer = self.tokenizer.decode(outputs[0], skip_special_tokens=False)
+        
+        # Extract the actual answer from the generated text
+        generated_answer = generated_answer.split("assistant")[-1].strip()
+        
+        logger.log.info(generated_answer)
+        
+        return self._determine_correctness(generated_answer, test_question_df, test_question_number)
+    
+    
+    def _inference(self, inputs, test_question_df, test_question_number):
         with torch.no_grad():
             outputs = self.model(**inputs)
         
@@ -130,6 +159,30 @@ class MMLUEvaluationOrchestrator:
         pred = {0: self.choices[0], 1: self.choices[1], 2: self.choices[2], 3: self.choices[3]}[np.argmax(choice_probs)]
         
         return choice_probs, pred, pred == test_question_df.iloc[test_question_number, 5]
+
+    def _determine_correctness(self, generated_answer, test_question_df, test_question_number):
+        review_prompt = f"""Review the following generated answer and determine which option (A, B, C, or D) it corresponds to. If no clear choice was made, output "None".
+
+Generated answer: {generated_answer}
+
+Answer (A, B, C, D, or None):"""
+
+        messages = [
+            {"role": "system", "content": "You are a helpful AI assistant."},
+            {"role": "user", "content": review_prompt},
+            {"role": "assistant", "content": ""}
+        ]
+        
+        prompt = "<|begin_of_text|>"
+        for message in messages:
+            role = message["role"]
+            content = message["content"]
+            prompt += f"<|start_header_id|>{role}<|end_header_id|>" + (f"\n{content}<|eot_id|>" if content else "")
+
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+        
+        return self._inference(inputs, test_question_df, test_question_number)
+        
 
     def _format_prompt_template(self, instructions, example_questions, test_question):
         # Start with the original template
