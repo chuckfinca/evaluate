@@ -40,7 +40,6 @@ class HuggingFaceModelLoader():
     def _setup_model(self, model_path):
         return AutoModelForCausalLM.from_pretrained(
             model_path,
-            # low_cpu_mem_usage=True,
             torch_dtype=self.dtype
         )
 
