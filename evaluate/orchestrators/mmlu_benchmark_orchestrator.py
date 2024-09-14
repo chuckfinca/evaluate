@@ -148,6 +148,8 @@ class MMLUEvaluationOrchestrator:
         # Get the correct answer from the test question DataFrame
         correct_answer = test_question_df.iloc[test_question_number, 5]
         
+        logger.log.info(correct_answer)
+        
         # Use the stub function to determine correctness
         correctness = self._determine_correctness(generated_answer, correct_answer)
         
@@ -165,7 +167,7 @@ class MMLUEvaluationOrchestrator:
         
         return choice_probs, pred, pred == test_question_df.iloc[test_question_number, 5]
 
-    def _determine_correctness(generated_answer, correct_answer):
+    def _determine_correctness(self, generated_answer, correct_answer):
         return False
         
 
