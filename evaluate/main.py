@@ -73,7 +73,7 @@ def main():
     logger.log.info(f"Running evaluation '{config['benchmark_name']}' with:")
     logger.log.info(f"Model: {config['model_name']}")
     logger.log.info(f"Number of training examples: {config.get('nshot', 0)}")
-    logger.log.info(f"Package name: {get_package_name()}")
+    logger.log.info(f"Generation type: {config.get('generation_type', 'inference')}")
     
     try:
         setup_benchmark(config['benchmark_name'])

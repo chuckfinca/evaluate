@@ -20,6 +20,7 @@ class MMLUEvaluationOrchestrator:
         self.benchmark_name = config['benchmark_name']
         self.model_name = config['model_name']
         self.nshot = config.get('nshot', 0)
+        self.generation_type = config.get('generation_type', 'inference')
         
         # Load prompt template from config
         self.load_prompt_template(config['prompt_template'])
@@ -121,16 +122,15 @@ class MMLUEvaluationOrchestrator:
             logger.log.info(f"\n------ prompt ({subject}):")
             logger.log.info(prompt)
             logger.log.info("------")
-        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
-        
-        open_ended_generation = True
-        if open_ended_generation:
-            return self._open_ended_generation(subject, inputs, test_question_df, test_question_number)
+         
+        if self.generation_type == "open_ended":
+            return self._open_ended_generation(subject, prompt, test_question_df, test_question_number)
         else:
-            return self._inference(subject, inputs, test_question_df, test_question_number)
+            return self._inference(subject, prompt, test_question_df, test_question_number)
             
         
-    def _open_ended_generation(self, subject, inputs, test_question_df, test_question_number):
+    def _open_ended_generation(self, subject, prompt, test_question_df, test_question_number):
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
         
         with torch.no_grad():
             outputs = self.model.generate(
@@ -151,7 +151,9 @@ class MMLUEvaluationOrchestrator:
         return self._determine_correctness(subject, generated_answer, test_question_df, test_question_number)
     
     
-    def _inference(self, subject, inputs, test_question_df, test_question_number):
+    def _inference(self, subject, prompt, test_question_df, test_question_number):
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+        
         with torch.no_grad():
             outputs = self.model(**inputs)
         
@@ -165,7 +167,7 @@ class MMLUEvaluationOrchestrator:
         is_correct = pred == correct_answer
 
         # Log the inference result
-        self._log_inference_result(subject, test_question_df, test_question_number, choice_probs, pred, is_correct)
+        self._log_inference_result(subject, prompt, test_question_df, test_question_number, choice_probs, pred, is_correct)
 
         return choice_probs, pred, is_correct
 
@@ -187,10 +189,8 @@ Answer (A, B, C, D, or None):"""
             role = message["role"]
             content = message["content"]
             prompt += f"<|start_header_id|>{role}<|end_header_id|>" + (f"\n{content}<|eot_id|>" if content else "")
-
-        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
         
-        return self._inference(subject, inputs, test_question_df, test_question_number)
+        return self._inference(subject, prompt, test_question_df, test_question_number)
         
 
     def _format_prompt_template(self, instructions, example_questions, test_question):
@@ -276,7 +276,7 @@ Answer (A, B, C, D, or None):"""
         
         logger.log.info(f"Scores saved to: {score_file_path}")
         
-    def _log_inference_result(self, subject, test_question_df, test_question_number, choice_probs, pred, is_correct):
+    def _log_inference_result(self, subject, prompt, test_question_df, test_question_number, choice_probs, pred, is_correct):
         log_file_path = os.path.join(self.raw_results_path, f"inference_log.csv")
         
         # Prepare the row data
@@ -285,6 +285,7 @@ Answer (A, B, C, D, or None):"""
             "subject": subject,
             "question_number": test_question_number,
             "question": test_question_df.iloc[test_question_number, 0],
+            "prompt": prompt,
             "choice_A": test_question_df.iloc[test_question_number, 1],
             "choice_B": test_question_df.iloc[test_question_number, 2],
             "choice_C": test_question_df.iloc[test_question_number, 3],

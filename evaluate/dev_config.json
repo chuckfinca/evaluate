@@ -9,5 +9,6 @@
         "instructions": "Choose the best answer from {label_a}, {label_b}, {label_c}, or {label_d} for the following multiple choice {subject} question."
     },
     "log_level": "INFO",
-    "cap_subjects": true
+    "cap_subjects": true,
+    "generation_type": "inference"
 }
