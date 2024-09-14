@@ -120,40 +120,6 @@ class MMLUEvaluationOrchestrator:
             logger.log.info("------")
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
         
-        open_ended_generation = True
-        if open_ended_generation:
-            return self._open_ended_generation(inputs, test_question_df, test_question_number)
-        else:
-            return self._inference(inputs, test_question_df, test_question_number)
-            
-        
-    def _open_ended_generation(self, inputs, test_question_df, test_question_number):
-        
-        with torch.no_grad():
-            outputs = self.model.generate(
-                **inputs,
-                max_new_tokens=100,
-                temperature=0.7,
-                top_p=0.9,
-                do_sample=True
-            )
-        
-        generated_answer = self.tokenizer.decode(outputs[0], skip_special_tokens=False)
-        
-        # Extract the actual answer from the generated text
-        generated_answer = generated_answer.split("assistant")[-1].strip()
-        
-        logger.log.info(generated_answer)
-        
-        # Get the correct answer from the test question DataFrame
-        correct_answer = test_question_df.iloc[test_question_number, 5]
-        
-        # Use the stub function to determine correctness
-        correctness = self.determine_correctness(generated_answer, correct_answer)
-        
-        return None, generated_answer, correctness
-    
-    def _inference(self, inputs, test_question_df, test_question_number):
         with torch.no_grad():
             outputs = self.model(**inputs)
         
@@ -164,10 +130,6 @@ class MMLUEvaluationOrchestrator:
         pred = {0: self.choices[0], 1: self.choices[1], 2: self.choices[2], 3: self.choices[3]}[np.argmax(choice_probs)]
         
         return choice_probs, pred, pred == test_question_df.iloc[test_question_number, 5]
-
-    def _determine_correctness(generated_answer, correct_answer):
-        return False
-        
 
     def _format_prompt_template(self, instructions, example_questions, test_question):
         # Start with the original template
