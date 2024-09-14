@@ -3,9 +3,8 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from evaluate.logs.logger import logger
 from evaluate.utils.path_utils import get_package_data_directory
-import threading
 
-class HuggingFaceModelLoader:
+class HuggingFaceModelLoader():
 
     def __init__(self, model_name):
         self.model_name = model_name
@@ -55,15 +54,10 @@ class HuggingFaceModelLoader:
         self.model = self._setup_model(self.model_name)
         self.tokenizer = self._setup_tokenizer(self.model_name)
         
-        logger.log.info(f"Initiating background save for model to {self.local_model_path}")
-        save_thread = threading.Thread(target=self._save_model_and_tokenizer)
-        save_thread.start()
-        
-    def _save_model_and_tokenizer(self):
         logger.log.info(f"Saving model to {self.local_model_path}")
         self.model.save_pretrained(self.local_model_path)
-        self.tokenizer.save_pretrained(self.local_model_path)
-        logger.log.info(f"Model and tokenizer saved to {self.local_model_path}")
+        self.tokenizer.save_pretrained(self.model_name)
         
     def _setup_tokenizer(self, model_name):
         return AutoTokenizer.from_pretrained(model_name)
+        
