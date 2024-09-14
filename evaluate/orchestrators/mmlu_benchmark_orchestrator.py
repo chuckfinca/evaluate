@@ -132,7 +132,7 @@ class MMLUEvaluationOrchestrator:
         with torch.no_grad():
             outputs = self.model.generate(
                 **inputs,
-                max_new_tokens=500,
+                max_new_tokens=100,
                 temperature=0.7,
                 top_p=0.9,
                 do_sample=True
@@ -149,7 +149,7 @@ class MMLUEvaluationOrchestrator:
         correct_answer = test_question_df.iloc[test_question_number, 5]
         
         # Use the stub function to determine correctness
-        correctness = self._determine_correctness(generated_answer, correct_answer)
+        correctness = self.determine_correctness(generated_answer, correct_answer)
         
         return None, generated_answer, correctness
     
