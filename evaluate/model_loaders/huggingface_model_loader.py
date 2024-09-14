@@ -15,11 +15,9 @@ class HuggingFaceModelLoader():
 
         # Set the device
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        logger.log.info(f"Device: {self.device}")
 
         # Determine the appropriate dtype
         self.dtype = torch.float32 if self.device.type == 'cpu' else torch.float16
-        logger.log.info(f"Using dtype: {self.dtype}")
 
         package_data_directory = get_package_data_directory()
         self.local_model_path = os.path.join(package_data_directory, 'models', model_name)
@@ -30,6 +28,11 @@ class HuggingFaceModelLoader():
             self._download_and_save_model()
 
         self.model.to(self.device).to(self.dtype)
+        
+        logger.log.info(f"device: {self.device}")
+        logger.log.info(f"dtype: {self.dtype}")
+        logger.log.info(f"model: {type(self.model).__name__}")
+        logger.log.info(f"tokenizer: {type(self.tokenizer).__name__}")
     
     def _is_model_saved(self):
         return os.path.exists(self.local_model_path)

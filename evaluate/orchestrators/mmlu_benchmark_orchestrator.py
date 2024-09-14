@@ -45,6 +45,10 @@ class MMLUEvaluationOrchestrator:
     def evaluate(self):
         logger.log.info("Prompt template:")
         logger.log.info(self.print_prompt_template())
+        logger.log.info("Special Tokens:")
+        logger.log.info(self.tokenizer.sep_token)
+        logger.log.info(self.tokenizer.eos_token)
+        logger.log.info(self.tokenizer.all_special_tokens)
 
         test_question_directory = os.path.join(self.data_folder_path, 'test')
         subjects = sorted([f.split("_test.csv")[0] for f in os.listdir(test_question_directory) if "_test.csv" in f])

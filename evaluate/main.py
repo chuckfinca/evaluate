@@ -3,7 +3,7 @@ import json
 import os
 import sys
 from evaluate.logs.logger import logger
-from evaluate.models.huggingface_model_loader import HuggingFaceModelLoader
+from evaluate.model_loaders.huggingface_model_loader import HuggingFaceModelLoader
 from evaluate.orchestrators.mmlu_benchmark_orchestrator import MMLUEvaluationOrchestrator
 from evaluate.benchmarks.benchmark_setup import setup_benchmark
 from evaluate.benchmarks.benchmark_config import get_supported_benchmarks
