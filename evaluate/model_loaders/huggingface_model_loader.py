@@ -47,13 +47,17 @@ class HuggingFaceModelLoader():
     def _load_local_model(self):
         logger.log.info(f"Loading model from {self.local_model_path}")
         self.model = self._setup_model(self.local_model_path)
-        self.tokenizer = AutoTokenizer.from_pretrained(self.local_model_path)
+        self.tokenizer = self._setup_tokenizer(self.local_model_path)
 
     def _download_and_save_model(self):
         logger.log.info(f"Downloading model {self.model_name}")
         self.model = self._setup_model(self.model_name)
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.tokenizer = self._setup_tokenizer(self.local_model_path)
         
         logger.log.info(f"Saving model to {self.local_model_path}")
         self.model.save_pretrained(self.local_model_path)
         self.tokenizer.save_pretrained(self.local_model_path)
+        
+    def _setup_tokenizer(self, model_path):
+        return AutoTokenizer.from_pretrained(model_path)
+        
