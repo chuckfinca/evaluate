@@ -33,7 +33,7 @@ class HuggingFaceModelLoader():
         logger.log.info(f"dtype: {self.dtype}")
         logger.log.info(f"model: {type(self.model).__name__}")
         logger.log.info(f"tokenizer: {type(self.tokenizer).__name__}")
-        logger.log.info(self.tokenizer)
+        logger.log.debug(self.tokenizer)
     
     def _is_model_saved(self):
         return os.path.exists(self.local_model_path)

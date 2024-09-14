@@ -146,7 +146,7 @@ class MMLUEvaluationOrchestrator:
         # Extract the actual answer from the generated text
         generated_answer = generated_answer.split("assistant")[-1].strip()
         
-        logger.log.info(generated_answer)
+        logger.log.debug(generated_answer)
         
         return self._determine_correctness(subject, generated_answer, test_question_df, test_question_number)
     
