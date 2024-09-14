@@ -145,15 +145,8 @@ class MMLUEvaluationOrchestrator:
         
         logger.log.info(generated_answer)
         
-        # Get the correct answer from the test question DataFrame
-        correct_answer = test_question_df.iloc[test_question_number, 5]
-        
-        logger.log.info(correct_answer)
-        
-        # Use the stub function to determine correctness
-        correctness = self._determine_correctness(generated_answer, correct_answer)
-        
-        return None, generated_answer, correctness
+        return self._determine_correctness(generated_answer, test_question_df, test_question_number)
+    
     
     def _inference(self, inputs, test_question_df, test_question_number):
         with torch.no_grad():
@@ -167,8 +160,28 @@ class MMLUEvaluationOrchestrator:
         
         return choice_probs, pred, pred == test_question_df.iloc[test_question_number, 5]
 
-    def _determine_correctness(self, generated_answer, correct_answer):
-        return False
+    def _determine_correctness(self, generated_answer, test_question_df, test_question_number):
+        review_prompt = f"""Review the following generated answer and determine which option (A, B, C, or D) it corresponds to. If no clear choice was made, output "None".
+
+Generated answer: {generated_answer}
+
+Answer (A, B, C, D, or None):"""
+
+        messages = [
+            {"role": "system", "content": "You are a helpful AI assistant."},
+            {"role": "user", "content": review_prompt},
+            {"role": "assistant", "content": ""}
+        ]
+        
+        prompt = "<|begin_of_text|>"
+        for message in messages:
+            role = message["role"]
+            content = message["content"]
+            prompt += f"<|start_header_id|>{role}<|end_header_id|>" + (f"\n{content}<|eot_id|>" if content else "")
+
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+        
+        return self._inference(inputs, test_question_df, test_question_number)
         
 
     def _format_prompt_template(self, instructions, example_questions, test_question):
