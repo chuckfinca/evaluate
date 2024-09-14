@@ -33,6 +33,7 @@ class HuggingFaceModelLoader():
         logger.log.info(f"dtype: {self.dtype}")
         logger.log.info(f"model: {type(self.model).__name__}")
         logger.log.info(f"tokenizer: {type(self.tokenizer).__name__}")
+        logger.log.info(self.tokenizer)
     
     def _is_model_saved(self):
         return os.path.exists(self.local_model_path)
@@ -51,12 +52,12 @@ class HuggingFaceModelLoader():
     def _download_and_save_model(self):
         logger.log.info(f"Downloading model {self.model_name}")
         self.model = self._setup_model(self.model_name)
-        self.tokenizer = self._setup_tokenizer(self.local_model_path)
+        self.tokenizer = self._setup_tokenizer(self.model_name)
         
         logger.log.info(f"Saving model to {self.local_model_path}")
         self.model.save_pretrained(self.local_model_path)
-        self.tokenizer.save_pretrained(self.local_model_path)
+        self.tokenizer.save_pretrained(self.model_name)
         
-    def _setup_tokenizer(self, model_path):
-        return AutoTokenizer.from_pretrained(model_path)
+    def _setup_tokenizer(self, model_name):
+        return AutoTokenizer.from_pretrained(model_name)
         
