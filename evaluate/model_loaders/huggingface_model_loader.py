@@ -1,4 +1,5 @@
 import os
+import time
 import torch
 import threading
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -27,8 +28,6 @@ class HuggingFaceModelLoader:
             self._load_local_model()
         else:
             self._download_model()
-            # Start a new thread to save the model asynchronously
-            threading.Thread(target=self._save_model, daemon=True).start()
 
         self.model.to(self.device).to(self.dtype)
         
@@ -42,6 +41,10 @@ class HuggingFaceModelLoader:
         logger.log.info(self.tokenizer.eos_token)
         logger.log.info(self.tokenizer.all_special_tokens)
         logger.log.debug(self.tokenizer)
+        
+        # Start a new thread to save the model asynchronously
+        if not self._is_model_saved():
+            threading.Thread(target=self._save_model, daemon=True).start()
     
     def _is_model_saved(self):
         return os.path.exists(self.local_model_path)
@@ -63,7 +66,8 @@ class HuggingFaceModelLoader:
         self.tokenizer = self._setup_tokenizer(self.model_name)
         
     def _save_model(self):
-        logger.log.info(f"Saving model to {self.local_model_path}")
+        time.sleep(1)  # Add a small delay to make the asynchronous nature more apparent
+        logger.log.info(f"Starting to save model to {self.local_model_path}")
         self.model.save_pretrained(self.local_model_path)
         self.tokenizer.save_pretrained(self.local_model_path)
         logger.log.info(f"Model saved to {self.local_model_path}")
