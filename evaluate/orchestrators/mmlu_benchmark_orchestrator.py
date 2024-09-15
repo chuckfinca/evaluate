@@ -105,18 +105,23 @@ class MMLUEvaluationOrchestrator:
     def _evaluate_question(self, subject, example_questions_df, test_question_df, test_question_number, log_prompt):
         instructions = self.format_instructions(subject.replace("_", " "))
         human_readable_prompt = self._format_prompt(instructions, example_questions_df, test_question_df, test_question_number)
-        prompt = "<|begin_of_text|>"
         
-        messages = [
-            {"role": "system", "content": "You are a helpful AI assistant."},
-            {"role": "user", "content": human_readable_prompt},
-            {"role": "assistant", "content": ""}
-        ]
-        
-        for message in messages:
-            role = message["role"]
-            content = message["content"]
-            prompt += f"<|start_header_id|>{role}<|end_header_id|>" + (f"\n{content}<|eot_id|>" if content else "")
+        add_special_tokens = False
+        if add_special_tokens:
+            prompt = "<|begin_of_text|>"
+            
+            messages = [
+                {"role": "system", "content": "You are a helpful AI assistant."},
+                {"role": "user", "content": human_readable_prompt},
+                {"role": "assistant", "content": ""}
+            ]
+            
+            for message in messages:
+                role = message["role"]
+                content = message["content"]
+                prompt += f"<|start_header_id|>{role}<|end_header_id|>" + (f"\n{content}<|eot_id|>" if content else "")
+        else:
+            prompt = human_readable_prompt
 
         if log_prompt:
             logger.log.info(f"\n------ prompt ({subject}):")
@@ -167,7 +172,7 @@ class MMLUEvaluationOrchestrator:
         is_correct = pred == correct_answer
 
         # Log the inference result
-        self._log_inference_result(subject, prompt, test_question_df, test_question_number, choice_probs, pred, is_correct)
+        self._log_inference_result(subject, prompt, test_question_df, test_question_number, choice_probs, pred, correct_answer)
 
         return choice_probs, pred, is_correct
 
@@ -276,7 +281,7 @@ Answer (A, B, C, D, or None):"""
         
         logger.log.info(f"Scores saved to: {score_file_path}")
         
-    def _log_inference_result(self, subject, prompt, test_question_df, test_question_number, choice_probs, pred, is_correct):
+    def _log_inference_result(self, subject, prompt, test_question_df, test_question_number, choice_probs, pred, correct_answer):
         log_file_path = os.path.join(self.raw_results_path, f"inference_log.csv")
         
         # Prepare the row data
@@ -290,9 +295,9 @@ Answer (A, B, C, D, or None):"""
             "choice_B": test_question_df.iloc[test_question_number, 2],
             "choice_C": test_question_df.iloc[test_question_number, 3],
             "choice_D": test_question_df.iloc[test_question_number, 4],
-            "correct_answer": test_question_df.iloc[test_question_number, 5],
+            "correct_answer": correct_answer,
             "predicted_answer": pred,
-            "is_correct": is_correct,
+            "is_correct": pred == correct_answer,
             "prob_A": choice_probs[0],
             "prob_B": choice_probs[1],
             "prob_C": choice_probs[2],
