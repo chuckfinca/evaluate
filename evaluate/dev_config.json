@@ -3,12 +3,16 @@
     "model_name": "google/gemma-2b-it",
     "nshot": 0,
     "prompt_template": {
-        "main_prompt_template": "{instructions}\n\n{examples}\n\n{question}",
+        "template": "{instructions}\n\n{examples}\n\n{question}",
         "question_template": "Question: {question}\n{label_a}. {choice_a}\n{label_b}. {choice_b}\n{label_c}. {choice_c}\n{label_d}. {choice_d}\nAnswer: {answer}",
         "question_separator": "\n\n",
         "instructions": "Choose the best answer from {label_a}, {label_b}, {label_c}, or {label_d} for the following multiple choice {subject} question."
     },
+    "review_prompt_template": {
+        "template": "Review the following generated answer and determine which option (A, B, C, or D) it corresponds to. If no clear choice was made, output 'None'.\n\nGenerated answer: {generated_answer}\n\nAnswer (A, B, C, D, or None):"
+    },
     "log_level": "INFO",
     "cap_subjects": true,
-    "generation_type": "inference"
+    "generation_type": "open_ended",
+    "structure_prompt_for_model_input": false
 }
