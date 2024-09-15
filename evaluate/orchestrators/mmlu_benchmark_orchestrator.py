@@ -108,7 +108,7 @@ class MMLUEvaluationOrchestrator:
         human_readable_prompt = self._format_prompt(instructions, example_questions_df, test_question_df, test_question_number)
         
         if self.structure_prompt_for_model_input:
-            self._add_special_tokens_to_prompt(human_readable_prompt)
+            prompt = self._add_special_tokens_to_prompt(human_readable_prompt)
         else:
             prompt = human_readable_prompt
          
