@@ -33,6 +33,11 @@ class HuggingFaceModelLoader():
         logger.log.info(f"dtype: {self.dtype}")
         logger.log.info(f"model: {type(self.model).__name__}")
         logger.log.info(f"tokenizer: {type(self.tokenizer).__name__}")
+        
+        logger.log.info("Special Tokens:")
+        logger.log.info(self.tokenizer.sep_token)
+        logger.log.info(self.tokenizer.eos_token)
+        logger.log.info(self.tokenizer.all_special_tokens)
         logger.log.debug(self.tokenizer)
     
     def _is_model_saved(self):
