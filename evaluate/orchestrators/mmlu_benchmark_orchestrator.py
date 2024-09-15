@@ -278,7 +278,7 @@ Answer (A, B, C, D, or None):"""
         logger.log.info(f"Scores saved to: {score_file_path}")
         
     def _log_inference_result(self, subject, prompt, test_question_df, test_question_number, choice_probs, pred, correct_answer):
-        log_file_path = os.path.join(self.raw_results_path, f"inference_log.csv")
+        log_file_path = os.path.join(self.raw_results_path, f"{self.generation_type}_log.csv")
         
         # Prepare the row data
         row_data = {
