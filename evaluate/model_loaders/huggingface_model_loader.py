@@ -1,10 +1,11 @@
 import os
 import torch
+import threading
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from evaluate.logs.logger import logger
 from evaluate.utils.path_utils import path_to_package_data
 
-class HuggingFaceModelLoader():
+class HuggingFaceModelLoader:
 
     def __init__(self, model_name):
         self.model_name = model_name
@@ -25,7 +26,9 @@ class HuggingFaceModelLoader():
         if self._is_model_saved():
             self._load_local_model()
         else:
-            self._download_and_save_model()
+            self._download_model()
+            # Start a new thread to save the model asynchronously
+            threading.Thread(target=self._save_model, daemon=True).start()
 
         self.model.to(self.device).to(self.dtype)
         
@@ -54,15 +57,16 @@ class HuggingFaceModelLoader():
         self.model = self._setup_model(self.local_model_path)
         self.tokenizer = self._setup_tokenizer(self.model_name)
 
-    def _download_and_save_model(self):
+    def _download_model(self):
         logger.log.info(f"Downloading model {self.model_name}")
         self.model = self._setup_model(self.model_name)
         self.tokenizer = self._setup_tokenizer(self.model_name)
         
+    def _save_model(self):
         logger.log.info(f"Saving model to {self.local_model_path}")
         self.model.save_pretrained(self.local_model_path)
-        self.tokenizer.save_pretrained(self.model_name)
+        self.tokenizer.save_pretrained(self.local_model_path)
+        logger.log.info(f"Model saved to {self.local_model_path}")
         
     def _setup_tokenizer(self, model_name):
         return AutoTokenizer.from_pretrained(model_name)
-        
