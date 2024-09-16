@@ -1,7 +1,6 @@
 import os
-import time
+import asyncio
 import torch
-import threading
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from evaluate.logs.logger import logger
 from evaluate.utils.path_utils import path_to_package_data
@@ -42,9 +41,9 @@ class HuggingFaceModelLoader:
         logger.log.info(self.tokenizer.all_special_tokens)
         logger.log.debug(self.tokenizer)
         
-        # Start a new thread to save the model asynchronously
+        # Start a new task to save the model asynchronously
         if not self._is_model_saved():
-            threading.Thread(target=self._save_model, daemon=True).start()
+            asyncio.create_task(self._save_model())
     
     def _is_model_saved(self):
         return os.path.exists(self.local_model_path)
@@ -65,11 +64,11 @@ class HuggingFaceModelLoader:
         self.model = self._setup_model(self.model_name)
         self.tokenizer = self._setup_tokenizer(self.model_name)
         
-    def _save_model(self):
-        time.sleep(1)  # Add a small delay to make the asynchronous nature more apparent
+    async def _save_model(self):
+        await asyncio.sleep(1)  # Add a small delay to make the asynchronous nature more apparent
         logger.log.info(f"Starting to save model to {self.local_model_path}")
-        self.model.save_pretrained(self.local_model_path)
-        self.tokenizer.save_pretrained(self.local_model_path)
+        await asyncio.to_thread(self.model.save_pretrained, self.local_model_path)
+        await asyncio.to_thread(self.tokenizer.save_pretrained, self.local_model_path)
         logger.log.info(f"Model saved to {self.local_model_path}")
         
     def _setup_tokenizer(self, model_name):
