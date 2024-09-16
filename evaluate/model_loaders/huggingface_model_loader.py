@@ -62,10 +62,14 @@ class HuggingFaceModelLoader:
         self.tokenizer = self._setup_tokenizer(self.model_name)
         
     async def _save_model(self):
-        logger.log.info(f"Starting to save model to {self.local_model_path}")
-        await asyncio.to_thread(self.model.save_pretrained, self.local_model_path)
-        await asyncio.to_thread(self.tokenizer.save_pretrained, self.local_model_path)
-        logger.log.info(f"Model saved to {self.local_model_path}")
+        if self._is_model_saved():
+            logger.log.info(f"Starting to save model to {self.local_model_path}")
+            try:
+                await asyncio.to_thread(self.model.save_pretrained, self.local_model_path)
+                await asyncio.to_thread(self.tokenizer.save_pretrained, self.local_model_path)
+                logger.log.info(f"Model saved to {self.local_model_path}")
+            except Exception as e:
+                logger.log.error(f"Error saving model: {str(e)}")
         
     def _setup_tokenizer(self, model_name):
         return AutoTokenizer.from_pretrained(model_name)

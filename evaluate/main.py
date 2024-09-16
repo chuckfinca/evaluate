@@ -1,5 +1,4 @@
 import argparse
-import asyncio
 import json
 import os
 import sys
@@ -83,13 +82,13 @@ def main():
         sys.exit(1)
 
     try:
-        model = HuggingFaceModelLoader(config['model_name'])
+        loader = HuggingFaceModelLoader(config['model_name'])
     except ValueError as e:
         logger.log.error(f"Error loading model: {str(e)}")
         sys.exit(1)
 
     try:
-        evaluator = MMLUEvaluationOrchestrator(model.model, model.tokenizer, config)
+        evaluator = MMLUEvaluationOrchestrator(loader.model, loader.tokenizer, config)
         evaluator.evaluate()
     except Exception as e:
         logger.log.error(f"Error during evaluation: {str(e)}")
@@ -98,4 +97,4 @@ def main():
     logger.log.info("Evaluation completed successfully.")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
