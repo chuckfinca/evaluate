@@ -92,6 +92,7 @@ class MMLUEvaluationOrchestrator:
 
         for i in range(len(test_question_df)):
             probability, prediction, correctness = self._evaluate_question(subject, example_questions_df, test_question_df, i)
+            print(f"prediction: {prediction} true: {self._correct_answer(test_question_df, i)}")
             probs.append(probability)
             preds.append(prediction)
             cors.append(correctness)
@@ -171,7 +172,7 @@ class MMLUEvaluationOrchestrator:
         choice_probs = [probs_i[self.tokenizer.encode(choice, add_special_tokens=False)[0]].item() for choice in self.choices]
         pred = {0: self.choices[0], 1: self.choices[1], 2: self.choices[2], 3: self.choices[3]}[np.argmax(choice_probs)]
         
-        correct_answer = test_question_df.iloc[test_question_number, 5]
+        correct_answer = self._correct_answer(test_question_df, test_question_number)
         is_correct = pred == correct_answer
 
         # Log the inference result
@@ -183,6 +184,9 @@ class MMLUEvaluationOrchestrator:
             logger.log.info("------")
 
         return choice_probs, pred, is_correct
+    
+    def _correct_answer(self, test_question_df, test_question_number):
+        return test_question_df.iloc[test_question_number, 5]
 
     def _determine_correctness(self, subject, generated_answer, test_question_df, test_question_number):
         review_prompt = self.review_prompt.format(
