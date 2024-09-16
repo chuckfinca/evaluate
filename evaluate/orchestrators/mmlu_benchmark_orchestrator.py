@@ -140,7 +140,9 @@ class MMLUEvaluationOrchestrator:
             outputs = self.model.generate(
                 **inputs,
                 max_new_tokens=50,
-                do_sample=False  # This is all you need for pure greedy decoding (it will pick the most likely token)
+                do_sample=False,  # This is all you need for pure greedy decoding (it will pick the most likely token)
+                temperature=None, # required for do_sample=False
+                top_p=None # required for do_sample=False
             )
         
         # Extract the actual answer from the generated text
