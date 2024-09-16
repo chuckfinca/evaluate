@@ -1,5 +1,5 @@
 import os
-import asyncio
+import threading
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from evaluate.logs.logger import logger
@@ -14,10 +14,7 @@ class HuggingFaceModelLoader:
         if not self.token:
             raise ValueError("HF_TOKEN not found in .env file at the root of the project")
 
-        # Set the device
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-        # Determine the appropriate dtype
         self.dtype = torch.float32 if self.device.type == 'cpu' else torch.float16
 
         package_data_directory = path_to_package_data()
@@ -27,7 +24,8 @@ class HuggingFaceModelLoader:
             self._load_local_model()
         else:
             self._download_model()
-            self._setup_task = asyncio.create_task(self._save_model())
+            self.save_thread = threading.Thread(target=self._save_model)
+            self.save_thread.start()
 
         self.model.to(self.device).to(self.dtype)
         
@@ -61,12 +59,12 @@ class HuggingFaceModelLoader:
         self.model = self._setup_model(self.model_name)
         self.tokenizer = self._setup_tokenizer(self.model_name)
         
-    async def _save_model(self):
-        if self._is_model_saved():
+    def _save_model(self):
+        if not self._is_model_saved():
             logger.log.info(f"Starting to save model to {self.local_model_path}")
             try:
-                await asyncio.to_thread(self.model.save_pretrained, self.local_model_path)
-                await asyncio.to_thread(self.tokenizer.save_pretrained, self.local_model_path)
+                self.model.save_pretrained(self.local_model_path)
+                self.tokenizer.save_pretrained(self.local_model_path)
                 logger.log.info(f"Model saved to {self.local_model_path}")
             except Exception as e:
                 logger.log.error(f"Error saving model: {str(e)}")
