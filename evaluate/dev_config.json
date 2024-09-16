@@ -9,7 +9,7 @@
         "instructions": "Choose the best answer from {label_a}, {label_b}, {label_c}, or {label_d} for the following multiple choice {subject} question."
     },
     "review_prompt_template": {
-        "template": "Review the following generated answer and determine which option (A, B, C, or D) it corresponds to. If no clear choice was made, output 'None'.\n\nGenerated answer: {generated_answer}\n\nAnswer (A, B, C, D, or None):"
+        "template": "Choose the answer A, B, C, or, D given in the following response:\n\n{generated_answer}\n\nAnswer: "
     },
     "log_level": "INFO",
     "cap_subjects": true,

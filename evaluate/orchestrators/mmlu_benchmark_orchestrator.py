@@ -139,13 +139,9 @@ class MMLUEvaluationOrchestrator:
         with torch.no_grad():
             outputs = self.model.generate(
                 **inputs,
-                max_new_tokens=500,
-                temperature=0.7,
-                top_p=0.9,
-                do_sample=True
+                max_new_tokens=50,
+                do_sample=False  # This is all you need for pure greedy decoding (it will pick the most likely token)
             )
-        
-        generated_answer = self.tokenizer.decode(outputs[0], skip_special_tokens=False)
         
         # Extract the actual answer from the generated text
         # generated_answer = generated_answer.split("assistant")[-1].strip()
