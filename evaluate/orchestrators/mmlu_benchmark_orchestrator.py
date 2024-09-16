@@ -20,12 +20,13 @@ class MMLUEvaluationOrchestrator:
         self.model_name = config['model_name']
         self.nshot = config.get('nshot', 0)
         self.generation_type = config.get('generation_type', 'inference')
-        self.structure_prompt_for_model_input = config.get('structure_prompt_for_model_input', False)
         
         # format_model_prompt or add_model_specific_instructions
         # Load prompt template from config
         self.load_prompt_template(config['prompt_template'])
         self.review_prompt = config['review_prompt_template'].get("template", "")
+        self.system_prompt = config.get('system_prompt', "")
+        self.structure_prompt_for_model_input = config.get('structure_prompt_for_model_input', False)
         
         self.choices = ["A", "B", "C", "D"]
 
@@ -122,7 +123,7 @@ class MMLUEvaluationOrchestrator:
         prompt = "<|begin_of_text|>"
             
         messages = [
-            {"role": "system", "content": "You are a helpful AI assistant."},
+            {"role": "system", "content": self.system_prompt},
             {"role": "user", "content": human_readable_prompt},
             {"role": "assistant", "content": ""}
         ]
