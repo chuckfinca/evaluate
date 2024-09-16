@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import json
 import os
 import sys
@@ -97,4 +98,4 @@ def main():
     logger.log.info("Evaluation completed successfully.")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

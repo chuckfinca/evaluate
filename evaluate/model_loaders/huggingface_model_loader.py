@@ -27,6 +27,7 @@ class HuggingFaceModelLoader:
             self._load_local_model()
         else:
             self._download_model()
+            self._setup_task = asyncio.create_task(self._save_model())
 
         self.model.to(self.device).to(self.dtype)
         
@@ -40,10 +41,6 @@ class HuggingFaceModelLoader:
         logger.log.info(self.tokenizer.eos_token)
         logger.log.info(self.tokenizer.all_special_tokens)
         logger.log.debug(self.tokenizer)
-        
-        # Start a new task to save the model asynchronously
-        if not self._is_model_saved():
-            asyncio.create_task(self._save_model())
     
     def _is_model_saved(self):
         return os.path.exists(self.local_model_path)
@@ -65,7 +62,6 @@ class HuggingFaceModelLoader:
         self.tokenizer = self._setup_tokenizer(self.model_name)
         
     async def _save_model(self):
-        await asyncio.sleep(1)  # Add a small delay to make the asynchronous nature more apparent
         logger.log.info(f"Starting to save model to {self.local_model_path}")
         await asyncio.to_thread(self.model.save_pretrained, self.local_model_path)
         await asyncio.to_thread(self.tokenizer.save_pretrained, self.local_model_path)
