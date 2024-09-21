@@ -270,7 +270,7 @@ class MMLUEvaluationOrchestrator:
             writer.writerow(['Metric', 'Value'])
             writer.writerow(['Benchmark Name', self.benchmark_name])
             writer.writerow(['Model Name', self.model_name])
-            writer.writerow(['Evaluation Date', datetime.now().isoformat()])
+            writer.writerow(['Evaluation Date', time.time()])
             writer.writerow(['Macro Average Accuracy', f"{macro_avg:.3f}"])
             writer.writerow(['Micro Average Accuracy', f"{micro_avg:.3f}"])
             writer.writerow(['N-shot', self.nshot])
