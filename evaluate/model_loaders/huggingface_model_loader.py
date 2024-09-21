@@ -3,6 +3,7 @@ import threading
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from evaluate.logs.logger import logger
+from evaluate.model_loaders.model_loader_config import get_model_loader_config
 from evaluate.utils.path_utils import path_to_package_data
 
 class HuggingFaceModelLoader:
@@ -70,4 +71,12 @@ class HuggingFaceModelLoader:
                 logger.log.error(f"Error saving model: {str(e)}")
         
     def _setup_tokenizer(self, model_name):
-        return AutoTokenizer.from_pretrained(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        model_name = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+        if config := get_model_loader_config(model_name):
+            tokenizer.bos_id: int = config["bos_id"]
+            tokenizer.eos_id: int = config["eos_id"]
+            tokenizer.pad_id: int = config["pad_id"]
+            tokenizer.stop_tokens = config["stop_tokens"]
+        return tokenizer
+        
