@@ -93,7 +93,6 @@ class MMLUEvaluationOrchestrator:
 
         for i in range(len(test_question_df)):
             probability, prediction, correctness = self._evaluate_question(subject, example_questions_df, test_question_df, i)
-            print(f"prediction: {prediction} true: {self._correct_answer(test_question_df, i)}")
             probs.append(probability)
             preds.append(prediction)
             cors.append(correctness)

@@ -7,7 +7,6 @@ from evaluate.model_loaders.huggingface_model_loader import HuggingFaceModelLoad
 from evaluate.orchestrators.mmlu_benchmark_orchestrator import MMLUEvaluationOrchestrator
 from evaluate.benchmarks.benchmark_setup import setup_benchmark
 from evaluate.benchmarks.benchmark_config import get_supported_benchmarks
-from evaluate.utils.import_utils import get_package_name
 from dotenv import load_dotenv
 
 load_dotenv()
