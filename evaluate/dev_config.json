@@ -1,12 +1,13 @@
 {
     "benchmark_name": "mmlu",
-    "model_name": "google/gemma-2b-it",
+    "model_name": "meta-llama/Meta-Llama-3.1-8B-Instruct",
     "nshot": 0,
+    "system_prompt": "You answer questions. At the end of the question you always give an answer and nothing else. You must pick an answer. You always give only one answer and that one answer is the one you think is best. You always give the answer in the form of the answer choice letter.",
     "prompt_template": {
-        "template": "{instructions}\n\n{examples}\n\n{question}",
-        "question_template": "Question: {question}\n{label_a}. {choice_a}\n{label_b}. {choice_b}\n{label_c}. {choice_c}\n{label_d}. {choice_d}\nAnswer: {answer}",
+        "template": "{instructions}\n{question}",
+        "question_template": "{question} Answer Choices: ({label_a}){choice_a} ({label_b}){choice_b} ({label_c}){choice_c} ({label_d}){choice_d}\nA: Among A through E, the answer is",
         "question_separator": "\n\n",
-        "instructions": "Choose the best answer from {label_a}, {label_b}, {label_c}, or {label_d} for the following multiple choice {subject} question."
+        "instructions": "Give your answer in the format \"The answer is therefore <A, B, C, D, E>\". Failure to comply with the answer formatting will result in no credit."
     },
     "review_prompt_template": {
         "template": "Choose the answer A, B, C, or, D given in the following response:\n\n{generated_answer}\n\nAnswer: "
@@ -14,5 +15,5 @@
     "log_level": "INFO",
     "cap_subjects": true,
     "generation_type": "open_ended",
-    "structure_prompt_for_model_input": false
+    "structure_prompt_for_model_input": true
 }

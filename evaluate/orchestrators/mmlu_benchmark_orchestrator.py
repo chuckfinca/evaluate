@@ -106,13 +106,25 @@ class MMLUEvaluationOrchestrator:
 
     def _evaluate_question(self, subject, example_questions_df, test_question_df, test_question_number):
         instructions = self.format_instructions(subject.replace("_", " "))
-        human_readable_prompt = self._format_prompt(instructions, example_questions_df, test_question_df, test_question_number)
+        user_message = self._format_prompt(instructions, example_questions_df, test_question_df, test_question_number)
         
         if self.structure_prompt_for_model_input:
-            prompt = self._add_special_tokens_to_prompt(human_readable_prompt)
+            chat = [
+                {"role": "system", "content": self.system_prompt},
+                {"role": "user", "content": user_message},
+                {"role": "assistant", "content": ""},
+            ]
+            full_chat = self.tokenizer.apply_chat_template(chat, tokenize=False)
+            print(full_chat)
+            print("asdf")
+            manual_prompt = self._add_special_tokens_to_prompt(user_message)
+            print(manual_prompt)
+            inputs = self.tokenizer(full_chat, return_tensors="pt").to(self.model.device)
         else:
-            prompt = human_readable_prompt
-         
+            prompt = user_message
+            inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+        
+        
         if self.generation_type == "open_ended":
             return self._open_ended_generation(subject, prompt, test_question_df, test_question_number)
         else:
