@@ -174,12 +174,7 @@ class MMLUEvaluationOrchestrator:
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
         
         with torch.no_grad():
-            outputs = self.model(
-                **inputs,
-                do_sample=False,  # This is all you need for pure greedy decoding (it will pick the most likely token)
-                temperature=None, # required for do_sample=False
-                top_p=None # required for do_sample=False
-            )
+            outputs = self.model(**inputs)
         
         logits = outputs.logits[0, -1]
         probs_i = torch.nn.functional.softmax(logits, dim=-1)
