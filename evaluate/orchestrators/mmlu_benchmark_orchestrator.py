@@ -119,11 +119,9 @@ class MMLUEvaluationOrchestrator:
             print("asdf")
             manual_prompt = self._add_special_tokens_to_prompt(user_message)
             print(manual_prompt)
-            inputs = self.tokenizer(full_chat, return_tensors="pt").to(self.model.device)
+            prompt = full_chat
         else:
             prompt = user_message
-            inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
-        
         
         if self.generation_type == "open_ended":
             return self._open_ended_generation(subject, prompt, test_question_df, test_question_number)
