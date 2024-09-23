@@ -114,12 +114,13 @@ class MMLUEvaluationOrchestrator:
                 {"role": "user", "content": user_message},
                 {"role": "assistant", "content": ""},
             ]
-            full_chat = self.tokenizer.apply_chat_template(chat, tokenize=False)
-            print(full_chat)
-            print("asdf")
-            manual_prompt = self._add_special_tokens_to_prompt(user_message)
-            print(manual_prompt)
-            prompt = full_chat
+            prompt = self.tokenizer.apply_chat_template(chat, tokenize=False)
+            
+            if test_question_number % 50 == 0:
+                print(prompt)
+                print("asdf")
+                manual_prompt = self._add_special_tokens_to_prompt(user_message)
+                print(manual_prompt)
         else:
             prompt = user_message
         
