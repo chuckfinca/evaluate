@@ -99,8 +99,8 @@ class MMLUEvaluationOrchestrator:
         acc = np.mean(cors)
         logger.log.info(f"{subject} Accuracy: {acc:.3f}")
 
-        return cors, probs, preds
-
+        return cors
+    
     def _evaluate_question(self, subject, example_questions_df, test_question_df, test_question_number):
         instructions = self.format_instructions(subject.replace("_", " "))
         user_message = self._format_prompt(instructions, example_questions_df, test_question_df, test_question_number)
@@ -123,7 +123,7 @@ class MMLUEvaluationOrchestrator:
         correct_answer = self._correct_answer(test_question_df, test_question_number)
 
         # Log the inference result
-        self._log_inference_result(subject, prompt, test_question_df, test_question_number, None, pred, correct_answer)
+        self._log_inference_result(subject, prompt, test_question_df, test_question_number, {}, pred, correct_answer)
 
         is_correct = pred == correct_answer
         if self.log_prompt:
@@ -280,12 +280,14 @@ class MMLUEvaluationOrchestrator:
             "choice_D": test_question_df.iloc[test_question_number, 4],
             "correct_answer": correct_answer,
             "predicted_answer": pred,
-            "is_correct": pred == correct_answer,
-            "prob_A": choice_probs[0],
-            "prob_B": choice_probs[1],
-            "prob_C": choice_probs[2],
-            "prob_D": choice_probs[3]
+            "is_correct": pred == correct_answer
         }
+
+        if choice_probs:
+            row_data["prob_A"] = choice_probs[0]
+            row_data["prob_B"] = choice_probs[1]
+            row_data["prob_C"] = choice_probs[2]
+            row_data["prob_D"] = choice_probs[3]
 
         # Check if the file exists to determine whether to write headers
         file_exists = os.path.isfile(log_file_path)
