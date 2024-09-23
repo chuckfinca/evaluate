@@ -286,9 +286,6 @@ class MMLUEvaluationOrchestrator:
             "prob_C": choice_probs[2],
             "prob_D": choice_probs[3]
         }
-        
-        if test_question_number % 50 == 0:
-                print(row_data)
 
         # Check if the file exists to determine whether to write headers
         file_exists = os.path.isfile(log_file_path)
