@@ -116,9 +116,9 @@ class MMLUEvaluationOrchestrator:
             prompt = user_message
         
         if self.generation_type == "open_ended":
-            pred = self._open_ended_generation(subject, prompt, test_question_df, test_question_number)
+            pred = self._open_ended_generation(subject, prompt)
         else:
-            pred = self._inference(subject, prompt, test_question_df, test_question_number)
+            pred = self._inference(subject, prompt)
         
         correct_answer = self._correct_answer(test_question_df, test_question_number)
 
@@ -131,13 +131,16 @@ class MMLUEvaluationOrchestrator:
             logger.log.info(prompt)
             logger.log.info (f"is correct? {is_correct}")
             logger.log.info("------")
+        
+        return is_correct
 
-    def _open_ended_generation(self, subject, prompt, test_question_df, test_question_number):
+    def _open_ended_generation(self, subject, prompt):
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
         
         with torch.no_grad():
             outputs = self.model.generate(
                 **inputs,
+                pad_token_id = self.tokenizer.eos_token_id,
                 max_new_tokens=50,
                 do_sample=False,  # This is all you need for pure greedy decoding (it will pick the most likely token)
                 temperature=None, # required for do_sample=False
@@ -145,7 +148,6 @@ class MMLUEvaluationOrchestrator:
             )
         
         # Extract the actual answer from the generated text
-        # generated_answer = generated_answer.split("assistant")[-1].strip()
         generated_answer = self.tokenizer.decode(outputs[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True)
     
         if self.log_prompt:
@@ -157,7 +159,7 @@ class MMLUEvaluationOrchestrator:
             
         return self._extract_letter(generated_answer)
     
-    def _inference(self, subject, prompt, test_question_df, test_question_number):
+    def _inference(self, prompt):
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
         
         with torch.no_grad():
