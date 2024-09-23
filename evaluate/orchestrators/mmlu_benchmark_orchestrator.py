@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import torch
 import csv
+import re
 from evaluate.processors.result_processor import calculate_scores
 from evaluate.utils.import_utils import import_benchmark_module
 from evaluate.utils.path_utils import path_to_benchmarks, path_to_raw_results, path_to_results
@@ -71,7 +72,7 @@ class MMLUEvaluationOrchestrator:
             example_questions_df = pd.read_csv(os.path.join(self.data_folder_path, "dev", f"{subject}_dev.csv"), header=None)[:self.nshot]
             test_question_df = pd.read_csv(os.path.join(self.data_folder_path, "test", f"{subject}_test.csv"), header=None)
 
-            cors, probs, preds = self._evaluate_subject(subject, example_questions_df, test_question_df)
+            cors = self._evaluate_subject(subject, example_questions_df, test_question_df)
             
             all_cors.extend(cors)
             subject_acc = np.mean(cors)
@@ -86,15 +87,11 @@ class MMLUEvaluationOrchestrator:
 
     def _evaluate_subject(self, subject, example_questions_df, test_question_df):
         cors = []
-        preds = []
-        probs = []
         
         self.log_prompt = True
 
         for i in range(len(test_question_df)):
-            probability, prediction, correctness = self._evaluate_question(subject, example_questions_df, test_question_df, i)
-            probs.append(probability)
-            preds.append(prediction)
+            correctness = self._evaluate_question(subject, example_questions_df, test_question_df, i)
             cors.append(correctness)
             if self.log_prompt:
                 self.log_prompt = False
@@ -119,25 +116,21 @@ class MMLUEvaluationOrchestrator:
             prompt = user_message
         
         if self.generation_type == "open_ended":
-            return self._open_ended_generation(subject, prompt, test_question_df, test_question_number)
+            pred = self._open_ended_generation(subject, prompt, test_question_df, test_question_number)
         else:
-            return self._inference(subject, prompt, test_question_df, test_question_number)
-            
-    def _add_special_tokens_to_prompt(self, human_readable_prompt):
-        prompt = "<|begin_of_text|>"
-            
-        messages = [
-            {"role": "system", "content": self.system_prompt},
-            {"role": "user", "content": human_readable_prompt},
-            {"role": "assistant", "content": ""}
-        ]
+            pred = self._inference(subject, prompt, test_question_df, test_question_number)
         
-        for message in messages:
-            role = message["role"]
-            content = message["content"]
-            prompt += f"<|start_header_id|>{role}<|end_header_id|>" + (f"\n{content}<|eot_id|>" if content else "")
-    
-        return prompt
+        correct_answer = self._correct_answer(test_question_df, test_question_number)
+
+        # Log the inference result
+        self._log_inference_result(subject, prompt, test_question_df, test_question_number, None, pred, correct_answer)
+
+        is_correct = pred == correct_answer
+        if self.log_prompt:
+            logger.log.info(f"\n------ prompt ({subject}):")
+            logger.log.info(prompt)
+            logger.log.info (f"is correct? {is_correct}")
+            logger.log.info("------")
 
     def _open_ended_generation(self, subject, prompt, test_question_df, test_question_number):
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
@@ -161,9 +154,8 @@ class MMLUEvaluationOrchestrator:
             logger.log.info("------ generated_answer:")
             logger.log.info(generated_answer)
             logger.log.info("------")
-        
-        return self._determine_correctness(subject, generated_answer, test_question_df, test_question_number)
-    
+            
+        return self._extract_letter(generated_answer)
     
     def _inference(self, subject, prompt, test_question_df, test_question_number):
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
@@ -177,31 +169,17 @@ class MMLUEvaluationOrchestrator:
         choice_probs = [probs_i[self.tokenizer.encode(choice, add_special_tokens=False)[0]].item() for choice in self.choices]
         pred = {0: self.choices[0], 1: self.choices[1], 2: self.choices[2], 3: self.choices[3]}[np.argmax(choice_probs)]
         
-        correct_answer = self._correct_answer(test_question_df, test_question_number)
-        is_correct = pred == correct_answer
-
-        # Log the inference result
-        self._log_inference_result(subject, prompt, test_question_df, test_question_number, choice_probs, pred, correct_answer)
-
-        if self.log_prompt:
-            logger.log.info(f"\n------ inference prompt ({subject}):")
-            logger.log.info(prompt)
-            logger.log.info("------")
-
-        return choice_probs, pred, is_correct
+        return pred
     
     def _correct_answer(self, test_question_df, test_question_number):
         return test_question_df.iloc[test_question_number, 5]
 
-    def _determine_correctness(self, subject, generated_answer, test_question_df, test_question_number):
-        review_prompt = self.review_prompt.format(
-            generated_answer=generated_answer
-        )
-        if self.structure_prompt_for_model_input:
-            review_prompt = self._add_special_tokens_to_prompt(review_prompt)
-
-        return self._inference(subject, review_prompt, test_question_df, test_question_number)
-        
+    def _extract_letter(self, text):
+        pattern = r'\b([ABCD])\b(?:\s|$|\.)'
+        match = re.search(pattern, text)
+        if match:
+            return match.group(1)
+        return None
 
     def _format_prompt_template(self, instructions, example_questions, test_question):
         # Start with the original template
