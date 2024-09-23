@@ -73,11 +73,11 @@ class HuggingFaceModelLoader:
         
     def _setup_tokenizer(self, model_name):
         tokenizer = AutoTokenizer.from_pretrained(model_name)
-        model_name = "meta-llama/Meta-Llama-3.1-8B-Instruct"
         if config := get_model_loader_config(model_name):
             tokenizer.bos_id: int = config["bos_id"]
             tokenizer.eos_id: int = config["eos_id"]
             tokenizer.pad_id: int = config["pad_id"]
             tokenizer.stop_tokens = config["stop_tokens"]
+            tokenizer.pad_token_id = config["pad_token_id"]
         return tokenizer
         

@@ -3,6 +3,7 @@ MODEL_LOADER_CONFIG = {
         'bos_id': 128000, # '<|begin_of_text|>',
         'eos_id': 128001, #'<|end_of_text|>',
         'pad_id': -1, # Llama 3.1 doesn't have one
+        'pad_token_id': 128001, 
         'stop_tokens': set([128001, 128009]) #['<|end_of_text|>', '<|eot_id|>'],
     },
 }
