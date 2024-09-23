@@ -115,12 +115,6 @@ class MMLUEvaluationOrchestrator:
                 {"role": "assistant", "content": ""},
             ]
             prompt = self.tokenizer.apply_chat_template(chat, tokenize=False)
-            
-            if test_question_number % 50 == 0:
-                print(prompt)
-                print("asdf")
-                manual_prompt = self._add_special_tokens_to_prompt(user_message)
-                print(manual_prompt)
         else:
             prompt = user_message
         
@@ -314,6 +308,9 @@ class MMLUEvaluationOrchestrator:
             "prob_C": choice_probs[2],
             "prob_D": choice_probs[3]
         }
+        
+        if test_question_number % 50 == 0:
+                print(row_data)
 
         # Check if the file exists to determine whether to write headers
         file_exists = os.path.isfile(log_file_path)
