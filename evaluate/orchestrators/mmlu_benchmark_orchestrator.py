@@ -115,9 +115,9 @@ class MMLUEvaluationOrchestrator:
             prompt = user_message
         
         if self.generation_type == "open_ended":
-            pred = self._open_ended_generation(subject, prompt)
+            pred = self._open_ended_generation(prompt)
         else:
-            pred = self._inference(subject, prompt)
+            pred = self._inference(prompt)
         
         correct_answer = self._correct_answer(test_question_df, test_question_number)
 
@@ -134,7 +134,7 @@ class MMLUEvaluationOrchestrator:
         
         return is_correct
 
-    def _open_ended_generation(self, subject, prompt):
+    def _open_ended_generation(self, prompt):
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
         
         with torch.no_grad():
