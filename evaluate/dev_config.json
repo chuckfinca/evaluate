@@ -2,18 +2,16 @@
     "benchmark_name": "mmlu",
     "model_name": "meta-llama/Meta-Llama-3.1-8B-Instruct",
     "nshot": 0,
+    "answer_choices": ["A", "B", "C", "D"],
+    "use_chat_template": true,
     "system_prompt": "You answer questions. At the end of the question you always give an answer and nothing else. You must pick an answer. You always give only one answer and that one answer is the one you think is best. You always give the answer in the form of the answer choice letter.",
-    "prompt_template": {
+    "user_prompt_template": {
         "template": "\n{instructions}\n{question}",
         "question_template": "{question} Answer Choices: ({label_a}){choice_a} ({label_b}){choice_b} ({label_c}){choice_c} ({label_d}){choice_d}\nA: Among A through E, the answer is",
         "question_separator": "\n\n",
-        "instructions": "Give your answer in the format \"The answer is therefore <A, B, C, D, E>\". Failure to comply with the answer formatting will result in no credit."
-    },
-    "review_prompt_template": {
-        "template": "Choose the answer A, B, C, or, D given in the following response:\n\n{generated_answer}\n\nAnswer: "
+        "instructions": "Give your answer in the format \"The answer is therefore <{label_a}, {label_b}, {label_c}, {label_d}>\". Failure to comply with the answer formatting will result in no credit."
     },
     "log_level": "INFO",
     "cap_subjects": true,
-    "generation_type": "open_ended",
-    "structure_prompt_for_model_input": true
+    "generation_type": "open_ended"
 }

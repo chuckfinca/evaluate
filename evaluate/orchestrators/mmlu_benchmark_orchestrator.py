@@ -24,12 +24,11 @@ class MMLUEvaluationOrchestrator:
         
         # format_model_prompt or add_model_specific_instructions
         # Load prompt template from config
-        self.load_prompt_template(config['prompt_template'])
-        self.review_prompt = config['review_prompt_template'].get("template", "")
+        self.load_user_prompt_template(config['user_prompt_template'])
         self.system_prompt = config.get('system_prompt', "")
-        self.structure_prompt_for_model_input = config.get('structure_prompt_for_model_input', False)
+        self.use_chat_template = config.get('use_chat_template', False)
         
-        self.choices = ["A", "B", "C", "D"]
+        self.choices = config['answer_choices']
 
         # by default we will log the prompt for the first question for each subject as a sanity check
         self.log_prompt = True
@@ -43,7 +42,7 @@ class MMLUEvaluationOrchestrator:
         self.results_dir = path_to_results(self.benchmark_name, self.model_name)
         self.raw_results_path = path_to_raw_results(self.benchmark_name, self.model_name, int(time.time()))
 
-    def load_prompt_template(self, prompt_template):
+    def load_user_prompt_template(self, prompt_template):
         self.prompt_template = prompt_template.get("template", "")
         self.question_template = prompt_template.get("question_template", "")
         self.question_separator = prompt_template.get("question_separator", "\n\n")
@@ -105,7 +104,7 @@ class MMLUEvaluationOrchestrator:
         instructions = self.format_instructions(subject.replace("_", " "))
         user_message = self._format_prompt(instructions, example_questions_df, test_question_df, test_question_number)
         
-        if self.structure_prompt_for_model_input:
+        if self.use_chat_template:
             chat = [
                 {"role": "system", "content": self.system_prompt},
                 {"role": "user", "content": user_message},
@@ -129,7 +128,8 @@ class MMLUEvaluationOrchestrator:
         if self.log_prompt:
             logger.log.info(f"\n------ prompt ({subject}):")
             logger.log.info(prompt)
-            logger.log.info (f"is correct? {is_correct}")
+            logger.log.info(f"pred: {pred}")
+            logger.log.info(f"correct_answer: {correct_answer}")
             logger.log.info("------")
         
         return is_correct
@@ -142,20 +142,13 @@ class MMLUEvaluationOrchestrator:
                 **inputs,
                 pad_token_id = self.tokenizer.eos_token_id,
                 max_new_tokens=50,
-                do_sample=False,  # This is all you need for pure greedy decoding (it will pick the most likely token)
+                do_sample=False,  # This is all you need for pure greedy decoding (i.e. it will deterministically pick the most likely token)
                 temperature=None, # required for do_sample=False
                 top_p=None # required for do_sample=False
             )
         
         # Extract the actual answer from the generated text
         generated_answer = self.tokenizer.decode(outputs[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True)
-    
-        if self.log_prompt:
-            logger.log.info(f"\n------ open ended prompt ({subject}):")
-            logger.log.info(prompt)
-            logger.log.info("------ generated_answer:")
-            logger.log.info(generated_answer)
-            logger.log.info("------")
             
         return self._extract_letter(generated_answer)
     

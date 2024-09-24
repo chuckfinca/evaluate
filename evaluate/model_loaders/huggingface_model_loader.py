@@ -34,7 +34,6 @@ class HuggingFaceModelLoader:
         logger.log.info(f"dtype: {self.dtype}")
         logger.log.info(f"model: {type(self.model).__name__}")
         logger.log.info(f"tokenizer: {type(self.tokenizer).__name__}")
-        logger.log.info(self.tokenizer)
         
         logger.log.info("Special Tokens:")
         logger.log.info(self.tokenizer.sep_token)
@@ -78,6 +77,5 @@ class HuggingFaceModelLoader:
             tokenizer.eos_id: int = config["eos_id"]
             tokenizer.pad_id: int = config["pad_id"]
             tokenizer.stop_tokens = config["stop_tokens"]
-            tokenizer.pad_token_id = config["pad_token_id"]
         return tokenizer
         
