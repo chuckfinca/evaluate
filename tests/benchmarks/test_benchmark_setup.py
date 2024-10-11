@@ -1,8 +1,8 @@
 import unittest
 import os
 import shutil
-from evaluate.benchmarks.benchmark_setup import setup_benchmark
-from evaluate.utils.path_utils import path_to_benchmarks, path_to_package_data
+from finca.evaluate.benchmarks.benchmark_setup import setup_benchmark
+from finca.utils.path_utils import path_to_benchmarks, path_to_package_data
 
 class TestBenchmarkSetup(unittest.TestCase):
     def setUp(self):

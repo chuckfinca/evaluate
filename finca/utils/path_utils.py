@@ -1,6 +1,6 @@
 import os
 from platformdirs import user_data_dir
-from evaluate.utils.import_utils import get_package_name
+from finca.utils.import_utils import get_package_name
 
 def path_to_package_data(for_tests=False):
     path = user_data_dir(get_package_name(), appauthor=False)

@@ -1,5 +1,5 @@
 import unittest
-from evaluate.orchestrators.mmlu_benchmark_orchestrator import MMLUEvaluationOrchestrator
+from finca.evaluate.orchestrators.mmlu_benchmark_orchestrator import MMLUEvaluationOrchestrator
 
 class TestMMLUPromptGeneration(unittest.TestCase):
     def setUp(self):

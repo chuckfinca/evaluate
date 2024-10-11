@@ -3,8 +3,8 @@ import requests
 import zipfile
 import tarfile
 import shutil
-from evaluate.logs.logger import logger
-from evaluate.utils.path_utils import path_to_benchmarks
+from finca.logs.logger import logger
+from finca.utils.path_utils import path_to_benchmarks
 from .benchmark_config import get_benchmark_config
 
 def setup_benchmark(benchmark_name, is_test=False):

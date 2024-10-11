@@ -2,9 +2,9 @@ import os
 import threading
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from evaluate.logs.logger import logger
-from evaluate.model_loaders.model_loader_config import get_model_loader_config
-from evaluate.utils.path_utils import path_to_package_data
+from finca.logs.logger import logger
+from finca.model_loaders.model_loader_config import get_model_loader_config
+from finca.utils.path_utils import path_to_package_data
 
 class HuggingFaceModelLoader:
 
