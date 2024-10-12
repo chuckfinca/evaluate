@@ -9,6 +9,8 @@ from finca.evaluate.benchmarks.benchmark_setup import setup_benchmark
 from finca.evaluate.benchmarks.benchmark_config import get_supported_benchmarks
 from dotenv import load_dotenv
 
+from finca.prompt_managers.default_prompt_manager import DefaultPromptManager
+
 load_dotenv()
 
 def parse_args():
@@ -86,8 +88,10 @@ def main():
         logger.log.error(f"Error loading model: {str(e)}")
         sys.exit(1)
 
+    prompt_manager = DefaultPromptManager(config)
+
     try:
-        evaluator = MMLUEvaluationOrchestrator(loader.model, loader.tokenizer, config)
+        evaluator = MMLUEvaluationOrchestrator(loader.model, loader.tokenizer, prompt_manager, config)
         evaluator.evaluate()
     except Exception as e:
         logger.log.error(f"Error during evaluation: {str(e)}")
