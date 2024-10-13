@@ -1,6 +1,8 @@
-class DefaultPromptManager():
+from finca.prompt_managers.base_prompt_manager import BasePromptManager
+
+class DefaultPromptManager(BasePromptManager):
     def __init__(self, config):
-        self.config = config
+        super().__init__(config)
         self.choices = config['answer_choices']
         self.load_user_prompt_template(config['user_prompt_template'])
 
