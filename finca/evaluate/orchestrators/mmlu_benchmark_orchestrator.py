@@ -18,17 +18,14 @@ class MMLUEvaluationOrchestrator:
     def __init__(self, model, tokenizer, prompt_manager, config):
         self.model = model
         self.tokenizer = tokenizer
-        self.config = config
         self.prompt_manager = prompt_manager
+        self.config = config
         
         self.benchmark_name = config['benchmark_name']
         self.model_name = config['model_name']
         self.nshot = config.get('nshot', 0)
         self.generation_type = config.get('generation_type', 'inference')
         
-        # format_model_prompt or add_model_specific_instructions
-        # Load prompt template from config
-        self.prompt_manager.load_user_prompt_template(config['user_prompt_template'])
         self.system_prompt = config.get('system_prompt', "")
         self.use_chat_template = config.get('use_chat_template', False)
         
@@ -45,7 +42,7 @@ class MMLUEvaluationOrchestrator:
         
         self.results_dir = path_to_results(self.benchmark_name, self.model_name)
         self.raw_results_path = path_to_raw_results(self.benchmark_name, self.model_name, int(time.time()))
-        
+
     def evaluate(self):
         logger.log.info("Prompt template:")
         logger.log.info(self.prompt_manager.print_prompt_template())
@@ -181,7 +178,7 @@ class MMLUEvaluationOrchestrator:
             writer.writerow(['Macro Average Accuracy', f"{macro_avg:.3f}"])
             writer.writerow(['Micro Average Accuracy', f"{micro_avg:.3f}"])
             writer.writerow(['N-shot', self.nshot])
-            writer.writerow(['Prompt Template', self.print_prompt_template()])
+            writer.writerow(['Prompt Template', self.prompt_manager.print_prompt_template()])
             writer.writerow([''])
             writer.writerow(['Subject', 'Accuracy'])
             for subject, accuracy in subject_results.items():

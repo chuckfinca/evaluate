@@ -1,4 +1,5 @@
 import importlib
+import json
 import os
 
 
@@ -16,3 +17,7 @@ def import_benchmark_module(module_name, benchmark_path):
     spec.loader.exec_module(module)
     
     return module
+
+def load_config(config_path):
+    with open(config_path, 'r') as f:
+        return json.load(f)

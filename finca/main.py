@@ -7,9 +7,11 @@ from finca.model_loaders.huggingface_model_loader import HuggingFaceModelLoader
 from finca.evaluate.orchestrators.mmlu_benchmark_orchestrator import MMLUEvaluationOrchestrator
 from finca.evaluate.benchmarks.benchmark_setup import setup_benchmark
 from finca.evaluate.benchmarks.benchmark_config import get_supported_benchmarks
+from finca.prompt_managers.prompt_manager_factory import PromptManagerFactory
 from dotenv import load_dotenv
 
 from finca.prompt_managers.default_prompt_manager import DefaultPromptManager
+from finca.utils.import_utils import load_config
 
 load_dotenv()
 
@@ -21,10 +23,6 @@ def parse_args():
     parser.add_argument("config", type=str, nargs='?', help="Path to JSON configuration file")
     parser.add_argument("--list_benchmarks", action="store_true", help="List all supported benchmarks and exit")
     return parser.parse_args()
-
-def load_config(config_path):
-    with open(config_path, 'r') as f:
-        return json.load(f)
 
 def validate_config(config):
     required_params = ['benchmark_name', 'model_name']
@@ -88,9 +86,8 @@ def main():
         logger.log.error(f"Error loading model: {str(e)}")
         sys.exit(1)
 
-    prompt_manager = DefaultPromptManager(config)
-
     try:
+        prompt_manager = DefaultPromptManager(config)
         evaluator = MMLUEvaluationOrchestrator(loader.model, loader.tokenizer, prompt_manager, config)
         evaluator.evaluate()
     except Exception as e:
