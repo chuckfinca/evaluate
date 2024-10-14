@@ -9,7 +9,6 @@ from finca.evaluate.processors.result_processor import calculate_scores
 from finca.utils.import_utils import import_benchmark_module
 from finca.utils.path_utils import path_to_benchmarks, path_to_raw_results, path_to_results
 from finca.logs.logger import logger
-from finca.prompt_managers.default_prompt_manager import DefaultPromptManager
 
 
 
@@ -45,7 +44,7 @@ class MMLUEvaluationOrchestrator:
 
     def evaluate(self):
         logger.log.info("Prompt template:")
-        logger.log.info(self.prompt_manager.print_prompt_template())
+        logger.log.info(self.prompt_manager.print_prompt())
 
         test_question_directory = os.path.join(self.data_folder_path, 'test')
         subjects = sorted([f.split("_test.csv")[0] for f in os.listdir(test_question_directory) if "_test.csv" in f])
@@ -91,7 +90,7 @@ class MMLUEvaluationOrchestrator:
         return cors
     
     def _evaluate_question(self, subject, example_questions_df, test_question_df, test_question_number):
-        instructions = self.prompt_manager.format_instructions(subject.replace("_", " "))
+        instructions = self.prompt_manager.prepare_prompt_config(subject.replace("_", " "))
         user_message = self.prompt_manager.format_prompt(instructions, example_questions_df, test_question_df, test_question_number)
         
         if self.use_chat_template:
@@ -178,7 +177,7 @@ class MMLUEvaluationOrchestrator:
             writer.writerow(['Macro Average Accuracy', f"{macro_avg:.3f}"])
             writer.writerow(['Micro Average Accuracy', f"{micro_avg:.3f}"])
             writer.writerow(['N-shot', self.nshot])
-            writer.writerow(['Prompt Template', self.prompt_manager.print_prompt_template()])
+            writer.writerow(['Prompt Template', self.prompt_manager.print_prompt()])
             writer.writerow([''])
             writer.writerow(['Subject', 'Accuracy'])
             for subject, accuracy in subject_results.items():

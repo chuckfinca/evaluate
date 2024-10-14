@@ -84,9 +84,14 @@ def main():
     except ValueError as e:
         logger.log.error(f"Error loading model: {str(e)}")
         sys.exit(1)
-
+        
     try:
         prompt_manager = DefaultPromptManager(config)
+    except ValueError as e:
+        logger.log.error(f"Error loading prompt manager: {str(e)}")
+        sys.exit(1)
+
+    try:
         evaluator = MMLUEvaluationOrchestrator(loader.model, loader.tokenizer, prompt_manager, config)
         evaluator.evaluate()
     except Exception as e:
