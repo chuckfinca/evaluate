@@ -6,7 +6,14 @@ from finca.prompt_managers.task_type import TaskType
 class DefaultPromptManager(BasePromptManager):
     def __init__(self, config, tokenizer=None):
         super().__init__(config, tokenizer)
-        self.prompt_template = config.get('prompt_template', "{subject}\n\nExamples:\n{examples}\n\nQuestion: {question}\nAnswer:")
+        self.user_prompt_template = config.get('user_prompt_template', {})
+        self.prompt_template = self.user_prompt_template.get('template', "{instructions}\n{question}")
+        self.question_template = self.user_prompt_template.get('question_template', "{question} Answer Choices: ({label_a}){choice_a} ({label_b}){choice_b} ({label_c}){choice_c} ({label_d}){choice_d}\nA: Among A through E, the answer is")
+        self.question_separator = self.user_prompt_template.get('question_separator', "\n\n")
+        self.instructions = self.user_prompt_template.get('instructions', "Give your answer in the format \"The answer is therefore <{label_a}, {label_b}, {label_c}, {label_d}>\". Failure to comply with the answer formatting will result in no credit.")
+        self.choices = config.get('answer_choices', ['A', 'B', 'C', 'D'])
+        self.system_prompt = config.get('system_prompt', "")
+        # self.prompt_template = config.get('prompt_template', "{subject}\n\nExamples:\n{examples}\n\nQuestion: {question}\nAnswer:")
         self.choices = config.get('answer_choices', ['A', 'B', 'C', 'D'])
 
     def prepare_prompt(self, subject, examples, question):
