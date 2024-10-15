@@ -9,8 +9,7 @@ from finca.evaluate.processors.result_processor import calculate_scores
 from finca.utils.import_utils import import_benchmark_module
 from finca.utils.path_utils import path_to_benchmarks, path_to_raw_results, path_to_results
 from finca.logs.logger import logger
-
-
+from finca.prompt_managers.prompt_manager_factory import PromptManagerFactory
 
 class MMLUEvaluationOrchestrator:
     
@@ -25,8 +24,6 @@ class MMLUEvaluationOrchestrator:
         self.nshot = config.get('nshot', 0)
         self.generation_type = config.get('generation_type', 'inference')
         
-        self.system_prompt = config.get('system_prompt', "")
-        self.use_chat_template = config.get('use_chat_template', False)
         
         self.choices = config['answer_choices']
 
@@ -90,25 +87,15 @@ class MMLUEvaluationOrchestrator:
         return cors
     
     def _evaluate_question(self, subject, example_questions_df, test_question_df, test_question_number):
-        instructions = self.prompt_manager.prepare_prompt_config(subject.replace("_", " "))
-        user_message = self.prompt_manager.format_prompt(instructions, example_questions_df, test_question_df, test_question_number)
-        
-        if self.use_chat_template:
-            chat = [
-                {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": user_message},
-                {"role": "assistant", "content": ""},
-            ]
-            prompt = self.tokenizer.apply_chat_template(chat, tokenize=False)
-        else:
-            prompt = user_message
+        question = test_question_df.iloc[test_question_number]
+        prompt = self.prompt_manager.prepare_prompt(subject, example_questions_df, question)
         
         if self.generation_type == "open_ended":
             pred = self._open_ended_generation(prompt)
         else:
             pred = self._inference(prompt)
-        
-        correct_answer = self._correct_answer(test_question_df, test_question_number)
+
+        correct_answer = self._correct_answer(question)
 
         # Log the inference result
         self._log_inference_result(subject, prompt, test_question_df, test_question_number, {}, pred, correct_answer)
@@ -155,8 +142,8 @@ class MMLUEvaluationOrchestrator:
         
         return pred
     
-    def _correct_answer(self, test_question_df, test_question_number):
-        return test_question_df.iloc[test_question_number, 5]
+    def _correct_answer(self, question_df):
+        return question_df[5]
 
     def _extract_letter(self, text):
         pattern = r'\b([ABCD])\b(?:\s|$|\.)'

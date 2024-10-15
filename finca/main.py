@@ -86,7 +86,7 @@ def main():
         sys.exit(1)
         
     try:
-        prompt_manager = DefaultPromptManager(config)
+        prompt_manager = DefaultPromptManager(config, loader.tokenizer)
     except ValueError as e:
         logger.log.error(f"Error loading prompt manager: {str(e)}")
         sys.exit(1)

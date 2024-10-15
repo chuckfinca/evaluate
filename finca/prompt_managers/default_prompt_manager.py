@@ -1,24 +1,38 @@
+
+import re
 from finca.prompt_managers.base_prompt_manager import BasePromptManager
-from finca.prompt_managers.prompt_config import PromptConfig
 from finca.prompt_managers.task_type import TaskType
 
 class DefaultPromptManager(BasePromptManager):
-    def __init__(self, config):
-        super().__init__(config)
-        self.prompt_template = config.get('prompt_template', "{question}\n{answer}")
+    def __init__(self, config, tokenizer=None):
+        super().__init__(config, tokenizer)
+        self.prompt_template = config.get('prompt_template', "{subject}\n\nExamples:\n{examples}\n\nQuestion: {question}\nAnswer:")
+        self.choices = config.get('answer_choices', ['A', 'B', 'C', 'D'])
 
-    def prepare_prompt_config(self, **kwargs) -> PromptConfig:
-        if self.task_type == TaskType.MultipleChoice:
-            return self._prepare_multiple_choice_config(**kwargs)
-        elif self.task_type == TaskType.OpenEnded:
-            return self._prepare_open_ended_config(**kwargs)
+    def prepare_prompt(self, subject, examples, question):
+        formatted_examples = self._format_examples(examples)
+        formatted_question = self._format_question(question)
+        
+        prompt = self.prompt_template.format(
+            subject=subject.replace("_", " "),
+            examples=formatted_examples,
+            question=formatted_question
+        )
+        
+        if self.use_chat_template:
+            messages = [
+                {"role": "system", "content": self.system_prompt},
+                {"role": "user", "content": prompt},
+                {"role": "assistant", "content": ""},
+            ]
+            return self.apply_chat_template(messages)
         else:
-            raise ValueError(f"Unsupported task type: {self.task_type}")
+            return prompt
 
     def get_expected_output_format(self) -> str:
-        if self.task_type == TaskType.MultipleChoice:
+        if self.task_type == TaskType.MULTIPLE_CHOICE:
             return "single_letter"
-        elif self.task_type == TaskType.OpenEnded:
+        elif self.task_type == TaskType.OPEN_ENDED:
             return "free_text"
         else:
             raise ValueError(f"Unsupported task type: {self.task_type}")
@@ -31,25 +45,28 @@ class DefaultPromptManager(BasePromptManager):
             print(f"- {variable}")
 
     def _extract_template_variables(self) -> list:
-        """Extract variable names from the prompt template."""
-        import re
         return re.findall(r'\{(\w+)\}', self.prompt_template)
 
-    def _prepare_multiple_choice_config(self, subject: str, examples: list, question: str) -> PromptConfig:
-        fields = {
-            "subject": subject,
-            "examples": self._format_examples(examples),
-            "question": question,
-            "choices": ", ".join(self.config['answer_choices'])
-        }
-        return PromptConfig(self.prompt_template, fields)
+    def _format_examples(self, examples):
+        formatted_examples = []
+        for _, example in examples.iterrows():
+            formatted_example = self._format_question(example)
+            formatted_examples.append(formatted_example)
+        return "\n\n".join(formatted_examples)
 
-    def _prepare_open_ended_config(self, context: str, question: str) -> PromptConfig:
-        fields = {
-            "context": context,
-            "question": question
-        }
-        return PromptConfig(self.prompt_template, fields)
+    def _format_question(self, question):
+        formatted_question = f"Q: {question[0]}\n"
+        items = question.items()
+        for i in range(len(self.choices)):
+            formatted_question += f"{self.choices[i]}) {question[i+1]}\n"
+        if len(question) == 5:
+            formatted_question += f"A: {question[5]}"
+        return formatted_question.strip()
 
-    def _format_examples(self, examples: list) -> str:
-        return "\n\n".join([f"Q: {e['question']}\nA: {e['answer']}" for e in examples])
+    def apply_chat_template(self, messages):
+        if self.use_chat_template and self.tokenizer:
+            return self.tokenizer.apply_chat_template(messages, tokenize=False)
+        elif isinstance(messages, list):
+            return messages[1]['content']  # Use the user message if not using chat_template
+        else:
+            return messages  # Return as is if it's already a string
