@@ -1,4 +1,6 @@
 import re
+
+from sqlalchemy import False_
 from finca.prompt_managers.base_prompt_manager import BasePromptManager
 from finca.prompt_managers.task_type import TaskType
 
@@ -18,7 +20,7 @@ class DefaultPromptManager(BasePromptManager):
     def prepare_prompt(self, subject, examples, question):
         formatted_instructions = self.format_instructions(subject)
         formatted_examples = self._format_examples(examples)
-        formatted_question = self._format_question(question)
+        formatted_question = self._format_question(question, False)
 
         prompt = self.prompt_template.format(
             instructions=formatted_instructions,
@@ -55,11 +57,11 @@ class DefaultPromptManager(BasePromptManager):
     def _format_examples(self, examples):
         formatted_examples = []
         for _, example in examples.iterrows():
-            formatted_example = self._format_question(example)
+            formatted_example = self._format_question(example, True)
             formatted_examples.append(formatted_example)
         return self.question_separator.join(formatted_examples)
 
-    def _format_question(self, question):
+    def _format_question(self, question, include_answer):
         question_text = question[0]
         choices = {
             self.choices[0]: question[1],
@@ -67,7 +69,7 @@ class DefaultPromptManager(BasePromptManager):
             self.choices[2]: question[3],
             self.choices[3]: question[4]
         }
-        answer = question[5] if len(question) == 6 else None
+        answer = question[5] if include_answer else None
 
         return self._format_question_template(question_text, choices, answer)
 
