@@ -67,7 +67,7 @@ class DefaultPromptManager(BasePromptManager):
             self.choices[2]: question[3],
             self.choices[3]: question[4]
         }
-        answer = question[5] if len(question) == 5 else None
+        answer = question[5] if len(question) == 6 else None
 
         return self._format_question_template(question_text, choices, answer)
 
