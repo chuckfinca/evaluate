@@ -111,22 +111,16 @@ class MMLUEvaluationOrchestrator:
         return is_correct
 
     def _open_ended_generation(self, prompt):
-        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
-        
-        with torch.no_grad():
-            outputs = self.model.generate(
-                **inputs,
-                pad_token_id = self.tokenizer.eos_token_id,
-                max_new_tokens=50,
-                do_sample=False,  # This is all you need for pure greedy decoding (i.e. it will deterministically pick the most likely token)
-                temperature=None, # required for do_sample=False
-                top_p=None # required for do_sample=False
-            )
-        
-        # Extract the actual answer from the generated text
-        generated_answer = self.tokenizer.decode(outputs[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True)
-            
-        return self._extract_letter(generated_answer)
+        answer = self.model(
+            prompt,
+            generate = True, # required to use model.generate(...)
+            pad_token_id = self.tokenizer.eos_token_id,
+            max_new_tokens=50,
+            do_sample=False,  # This is all you need for pure greedy decoding (i.e. it will deterministically pick the most likely token)
+            temperature=None, # required for do_sample=False
+            top_p=None # required for do_sample=False
+        )
+        return self._extract_letter(answer)
     
     def _inference(self, prompt):
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
