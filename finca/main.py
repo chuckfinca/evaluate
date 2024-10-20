@@ -10,6 +10,7 @@ from finca.evaluate.benchmarks.benchmark_config import get_supported_benchmarks
 from dotenv import load_dotenv
 
 from finca.prompt_managers.default_prompt_manager import DefaultPromptManager
+from finca.prompt_managers.dspy_prompt_manager import DSPyPromptManager
 from finca.utils.import_utils import load_config
 
 load_dotenv()
@@ -86,7 +87,10 @@ def main():
         sys.exit(1)
         
     try:
-        prompt_manager = DefaultPromptManager(config, loader.tokenizer)
+        if config["prompt_manager"] == "dspy":
+            prompt_manager = DSPyPromptManager(config, loader.tokenizer, loader.model)
+        else:
+            prompt_manager = DefaultPromptManager(config, loader.tokenizer)
     except ValueError as e:
         logger.log.error(f"Error loading prompt manager: {str(e)}")
         sys.exit(1)

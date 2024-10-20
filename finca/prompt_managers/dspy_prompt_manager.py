@@ -1,60 +1,97 @@
 import dspy
+import torch
 from finca.prompt_managers.base_prompt_manager import BasePromptManager
-from finca.prompt_managers.default_prompt_manager import DefaultPromptManager
 from finca.prompt_managers.task_type import TaskType
 
+class MultipleChoiceExample(dspy.Signature):
+    """A single multiple-choice example."""
+    question = dspy.InputField()
+    choices = dspy.InputField()
+    correct_answer = dspy.InputField()
+
+class MultipleChoiceQA(dspy.Signature):
+    """Answer a multiple-choice question given instructions and examples."""
+    subject = dspy.InputField()
+    examples = dspy.InputField(desc="List of MultipleChoiceExample")
+    question = dspy.InputField()
+    choices = dspy.InputField()
+    answer = dspy.OutputField(desc="The letter (A, B, C, or D) of the correct answer")
+
+class MultipleChoiceTeleprompter(dspy.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, subject, examples, question, choices):
+        instructions = f"Answer the following {subject} question. Choose the best answer from the given options."
+        formatted_examples = ""
+        for ex in examples:
+            formatted_examples += f"Question: {ex.question}\n"
+            for letter, choice in zip(self.choices, ex.choices):
+                formatted_examples += f"{letter}. {choice}\n"
+            formatted_examples += f"Answer: {ex.correct_answer}\n\n"
+
+        formatted_question = f"Question: {question}\n"
+        for letter, choice in zip(self.choices, choices):
+            formatted_question += f"{letter}. {choice}\n"
+
+        prompt = f"{instructions}\n\n{formatted_examples}Now, please answer this question:\n\n{formatted_question}"
+        return prompt
+
+class MultipleChoiceProgram(dspy.Module):
+    def __init__(self, subject, examples, question, choices):
+        super().__init__()
+        self.teleprompter = MultipleChoiceTeleprompter()
+        print("aaa")
+        self.qa = MultipleChoiceQA(subject, examples, question, choices)
+        print("bbb")
+
+    def forward(self, subject, examples, question, choices):
+        prompt = self.teleprompter(subject, examples, question, choices)
+        return self.qa(subject=subject, examples=examples, question=question, choices=choices, _hint=prompt)
+
+
 class DSPyPromptManager(BasePromptManager):
-    def __init__(self, config, tokenizer=None):
+    def __init__(self, config, tokenizer=None, model=None):
         super().__init__(config, tokenizer)
-        self.lm = config.get('lm')  # This should be a DSPy language model
+        self.choices = ['A', 'B', 'C', 'D']
+        self.program = MultipleChoiceProgram()
 
     def prepare_prompt(self, subject, examples, question):
-        if self.task_type == TaskType.MULTIPLE_CHOICE:
-            return self._prepare_multiple_choice_prompt(subject, examples, question)
-        elif self.task_type == TaskType.OPEN_ENDED:
-            return self._prepare_open_ended_prompt(subject, examples, question)
-        else:
-            raise ValueError(f"Unsupported task type: {self.task_type}")
+        dspy_examples = [
+            MultipleChoiceExample(
+                question=row[0],
+                choices=[row[1], row[2], row[3], row[4]],
+                correct_answer=row[5]
+            ) for _, row in examples.iterrows()
+        ]
 
-    def _prepare_multiple_choice_prompt(self, subject, examples, question):
-        import dspy
+        result = self.program(
+            subject=subject,
+            examples=dspy_examples,
+            question=question[0],
+            choices=[question[1], question[2], question[3], question[4]]
+        )
 
-        class MultipleChoicePrompt(dspy.Signature):
-            """Answer multiple-choice questions."""
-            subject = dspy.InputField()
-            examples = dspy.InputField()
-            question = dspy.InputField()
-            answer = dspy.OutputField(desc="The letter (A, B, C, or D) corresponding to the correct answer.")
-
-        formatted_examples = self._format_examples(examples)
-        formatted_question = self._format_question(question)
-
-        prompter = dspy.Predict(MultipleChoicePrompt)
-        return prompter(subject=subject.replace("_", " "), examples=formatted_examples, question=formatted_question)
-
-    def _prepare_open_ended_prompt(self, subject, examples, question):
-        import dspy
-
-        class OpenEndedPrompt(dspy.Signature):
-            """Answer open-ended questions based on the given context."""
-            subject = dspy.InputField()
-            examples = dspy.InputField()
-            question = dspy.InputField()
-            answer = dspy.OutputField(desc="A detailed answer to the question based on the context.")
-
-        formatted_examples = self._format_examples(examples)
-        formatted_question = self._format_question(question)
-
-        prompter = dspy.Predict(OpenEndedPrompt)
-        return prompter(subject=subject.replace("_", " "), examples=formatted_examples, question=formatted_question)
+        return result.answer
 
     def get_expected_output_format(self) -> str:
-        return "dspy_format"
+        return "single_letter"
 
     def print_prompt(self) -> None:
-        print("DSPy Prompt Manager does not have a static prompt template.")
-        print("Prompts are dynamically generated based on the task type and inputs.")
+        print("DSPy Program Structure:")
+        print(self.program)
 
-    # Reuse the _format_examples and _format_question methods from DefaultPromptManager
-    _format_examples = DefaultPromptManager._format_examples
-    _format_question = DefaultPromptManager._format_question
+        print("\nExample Prompt (with placeholder data):")
+        example_subject = "mathematics"
+        example_examples = [
+            MultipleChoiceExample(
+                question="What is 2 + 2?",
+                choices=["3", "4", "5", "6"],
+                correct_answer="B"
+            )
+        ]
+        example_question = "What is 3 * 3?"
+        example_choices = ["6", "7", "9", "10"]
+
+        example_prompt = self.program.teleprompter(example_subject, example_examples, example_question, example_choices)
+        print(example_prompt)

@@ -5,10 +5,11 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from finca.logs.logger import logger
 from finca.model_loaders.model_loader_config import get_model_loader_config
 from finca.utils.path_utils import path_to_package_data
+from finca.model_loaders.base_model_loader import BaseModelLoader
 
-class HuggingFaceModelLoader:
+class HuggingFaceModelLoader(BaseModelLoader):
 
-    def __init__(self, model_name):
+    def __init__(self, model_name, use_dspy=False):
         self.model_name = model_name
         self.token = os.getenv('HF_TOKEN')
 
@@ -22,13 +23,14 @@ class HuggingFaceModelLoader:
         self.local_model_path = os.path.join(package_data_directory, 'models', model_name)
 
         if self._is_model_saved():
-            self._load_local_model()
+            model, tokenizer = self._load_local_model()
         else:
-            self._download_model()
-            self.save_thread = threading.Thread(target=self._save_model)
-            self.save_thread.start()
+            model, tokenizer = self._download_model()
 
-        self.model.to(self.device).to(self.dtype)
+        model.to(self.device).to(self.dtype)
+        
+        # Call the base class initializer with the loaded model and tokenizer
+        super().__init__(model, tokenizer, use_dspy)
         
         logger.log.info(f"device: {self.device}")
         logger.log.info(f"dtype: {self.dtype}")
@@ -52,13 +54,15 @@ class HuggingFaceModelLoader:
 
     def _load_local_model(self):
         logger.log.info(f"Loading model from {self.local_model_path}")
-        self.model = self._setup_model(self.local_model_path)
-        self.tokenizer = self._setup_tokenizer(self.model_name)
+        model = self._setup_model(self.local_model_path)
+        tokenizer = self._setup_tokenizer(self.model_name)
+        return model, tokenizer
 
     def _download_model(self):
         logger.log.info(f"Downloading model {self.model_name}")
-        self.model = self._setup_model(self.model_name)
-        self.tokenizer = self._setup_tokenizer(self.model_name)
+        model = self._setup_model(self.model_name)
+        tokenizer = self._setup_tokenizer(self.model_name)
+        return model, tokenizer
         
     def _save_model(self):
         if not self._is_model_saved():
