@@ -44,10 +44,11 @@ class DSPyModelWrapper:
     
     def _default(self, prompt, **kwargs):
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+        
         with torch.no_grad():
-            output = self.model.generate(**inputs, **kwargs)
-        return self.tokenizer.decode(output[0], skip_special_tokens=True)
-    
+            outputs = self.model(**inputs)
+            return outputs
+
     def _default_generate(self, prompt, **kwargs):
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
         with torch.no_grad():

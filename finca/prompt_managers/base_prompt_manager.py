@@ -5,9 +5,6 @@ class BasePromptManager(ABC):
     def __init__(self, config, tokenizer=None):
         self.config = config
         self.tokenizer = tokenizer
-        self.task_type = TaskType(self.config["task_type"])
-        self.use_chat_template = config.get('use_chat_template', False)
-        self.system_prompt = config.get('system_prompt', "")
 
     @abstractmethod
     def prepare_prompt(self, subject, examples, question):

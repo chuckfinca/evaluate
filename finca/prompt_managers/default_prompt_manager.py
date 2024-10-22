@@ -7,14 +7,15 @@ from finca.prompt_managers.task_type import TaskType
 class DefaultPromptManager(BasePromptManager):
     def __init__(self, config, tokenizer=None):
         super().__init__(config, tokenizer)
+        self.task_type = TaskType(self.config["task_type"])
+        self.use_chat_template = config.get('use_chat_template', False)
+        self.system_prompt = config.get('system_prompt', "")
+        self.choices = config.get('answer_choices', ['A', 'B', 'C', 'D'])
         self.user_prompt_template = config.get('user_prompt_template', {})
         self.prompt_template = self.user_prompt_template.get('template', "Missing 'template' in the config")
         self.question_template = self.user_prompt_template.get('question_template', "Missing 'question_template' in the config")
         self.question_separator = self.user_prompt_template.get('question_separator', "Missing 'question_separator' in the config")
         self.instructions_template = self.user_prompt_template.get('instructions', "Missing 'instructions' in the config")
-        self.choices = config.get('answer_choices', ['A', 'B', 'C', 'D'])
-        self.system_prompt = config.get('system_prompt', "")
-        self.use_chat_template = config.get('use_chat_template', False)
         self.task_type = config.get('task_type', TaskType.MULTIPLE_CHOICE)
 
     def prepare_prompt(self, subject, examples, question):

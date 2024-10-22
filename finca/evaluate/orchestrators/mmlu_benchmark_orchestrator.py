@@ -123,11 +123,7 @@ class MMLUEvaluationOrchestrator:
         return self._extract_letter(answer)
     
     def _inference(self, prompt):
-        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
-        
-        with torch.no_grad():
-            outputs = self.model(**inputs)
-        
+        outputs = self.model(prompt)
         logits = outputs.logits[0, -1]
         probs_i = torch.nn.functional.softmax(logits, dim=-1)
         

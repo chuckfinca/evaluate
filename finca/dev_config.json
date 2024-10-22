@@ -16,5 +16,5 @@
     "dspy_prompt_template": "Instructions: {instructions}\n\nExamples:\n{examples}\n\nQuestion: {question}\nAnswer:",
     "log_level": "INFO",
     "cap_subjects": true,
-    "generation_type": "open_ended"
+    "generation_type": "inference"
 }
