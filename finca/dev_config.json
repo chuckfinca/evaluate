@@ -13,7 +13,7 @@
         "instructions": "Give your answer in the format \"The answer is therefore <{label_a}, {label_b}, {label_c}, {label_d}>\". Failure to comply with the answer formatting will result in no credit."
     },
     "dspy_programs": {
-        "multiple_choice": "MultipleChoiceProgramRM"
+        "multiple_choice": "MultipleChoiceProgram"
     },
     "log_level": "INFO",
     "cap_subjects": true,

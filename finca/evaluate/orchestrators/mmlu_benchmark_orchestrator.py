@@ -89,7 +89,10 @@ class MMLUEvaluationOrchestrator:
         question = test_question_df.iloc[test_question_number]
         prompt = self.prompt_manager.prepare_prompt(subject, example_questions_df, question)
         
-        if self.generation_type == "open_ended":
+        if self.model.has_dspy_programs:
+            # Use DSPy program for multiple choice
+            pred = self.model(prompt, program_name="multiple_choice")
+        elif self.generation_type == "open_ended":
             pred = self._open_ended_generation(prompt)
         else:
             pred = self._inference(prompt)
