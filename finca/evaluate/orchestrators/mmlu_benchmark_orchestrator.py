@@ -91,7 +91,7 @@ class MMLUEvaluationOrchestrator:
         
         if self.model.has_dspy_programs:
             # Use DSPy program for multiple choice
-            pred = self.model(prompt, program_name="multiple_choice")
+            pred = self.model(prompt, program_name="MultipleChoiceProgram")
         elif self.generation_type == "open_ended":
             pred = self._open_ended_generation(prompt)
         else:

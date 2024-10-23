@@ -2,7 +2,7 @@ import argparse
 import json
 import os
 import sys
-from finca.dspy.program_registry import resolve_program_class
+
 from finca.logs.logger import logger
 from finca.model_loaders.huggingface_model_loader import HuggingFaceModelLoader
 from finca.evaluate.orchestrators.mmlu_benchmark_orchestrator import MMLUEvaluationOrchestrator
@@ -88,10 +88,8 @@ def main():
         sys.exit(1)
         
     if "dspy_programs" in config:
-        for program_name, program_class_name in config["dspy_programs"].items():
-            # Handle the string-to-class conversion here
-            program_class = resolve_program_class(program_class_name)
-            loader.model.register_program(program_name, program_class)
+        for program_name in config["dspy_programs"]:
+            loader.model.register_program(program_name)
     try:
         if loader.model.has_dspy_programs:
             prompt_manager = MultipleChoicePromptManager(config, loader.tokenizer)
