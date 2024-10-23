@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from finca.prompt_managers.task_type import TaskType
 
 class BasePromptManager(ABC):
     def __init__(self, config, tokenizer=None):
@@ -9,11 +8,6 @@ class BasePromptManager(ABC):
     @abstractmethod
     def prepare_prompt(self, subject, examples, question):
         """Prepare a PromptConfig for a given task type and parameters."""
-        pass
-
-    @abstractmethod
-    def get_expected_output_format(self) -> str:
-        """Return the expected format of the model's output for a given task type."""
         pass
 
     @abstractmethod

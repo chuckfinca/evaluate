@@ -81,14 +81,15 @@ def main():
         sys.exit(1)
 
     try:
-        loader = HuggingFaceModelLoader(config['model_name'])
+        use_dspy = config['prompt_manager'] == 'dspy'
+        loader = HuggingFaceModelLoader(config['model_name'], use_dspy)
     except ValueError as e:
         logger.log.error(f"Error loading model: {str(e)}")
         sys.exit(1)
         
     try:
         if config["prompt_manager"] == "dspy":
-            prompt_manager = DSPyPromptManager(config, loader.tokenizer, loader.model)
+            prompt_manager = DSPyPromptManager(config, loader.tokenizer)
         else:
             prompt_manager = DefaultPromptManager(config, loader.tokenizer)
     except ValueError as e:

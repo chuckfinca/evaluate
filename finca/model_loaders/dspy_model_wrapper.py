@@ -3,9 +3,10 @@ import dspy
 from finca.logs.logger import logger
 
 class CustomLM(dspy.LM):
-    def __init__(self, model, tokenizer):
+    def __init__(self, model, tokenizer, **kwargs):
         self.model = model
         self.tokenizer = tokenizer
+        self.kwargs = kwargs # required dspy attribute
 
     def __call__(self, prompt, **kwargs):
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
@@ -23,11 +24,18 @@ class DSPyModelWrapper:
             self.setup_dspy_environment(model, tokenizer)
 
     def setup_dspy_environment(self, model, tokenizer):
-        self.dspy_lm = CustomLM(model, tokenizer)
+        kwargs = {
+            'temperature': 0.0,  # deterministic
+            'max_tokens': 100,   # reasonable default
+            'stop': None,        # no default stop sequences
+            'n': 1             # single completion
+        }
+        self.dspy_lm = CustomLM(model, tokenizer, **kwargs)
         dspy.settings.configure(lm=self.dspy_lm)
 
     def __call__(self, prompt, **kwargs):
         if self.use_dspy:
+            here the prompt manager needs to run the program instead of just calling the model
             return self.dspy_lm(prompt, **kwargs)
         else:
             if "generate" in kwargs and kwargs["generate"] == True:
