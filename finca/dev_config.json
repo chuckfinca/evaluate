@@ -12,7 +12,9 @@
         "question_separator": "\n\n",
         "instructions": "Give your answer in the format \"The answer is therefore <{label_a}, {label_b}, {label_c}, {label_d}>\". Failure to comply with the answer formatting will result in no credit."
     },
-    "dspy_prompt_template": "Instructions: {instructions}\n\nExamples:\n{examples}\n\nQuestion: {question}\nAnswer:",
+    "dspy_programs": {
+        "multiple_choice": "MultipleChoiceProgramRM"
+    },
     "log_level": "INFO",
     "cap_subjects": true,
     "generation_type": "inference"

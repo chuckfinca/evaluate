@@ -1,5 +1,4 @@
 import os
-import threading
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from finca.logs.logger import logger
@@ -9,7 +8,7 @@ from finca.model_loaders.base_model_loader import BaseModelLoader
 
 class HuggingFaceModelLoader(BaseModelLoader):
 
-    def __init__(self, model_name, use_dspy=False):
+    def __init__(self, model_name):
         self.model_name = model_name
         self.token = os.getenv('HF_TOKEN')
 
@@ -30,7 +29,7 @@ class HuggingFaceModelLoader(BaseModelLoader):
         model.to(self.device).to(self.dtype)
         
         # Call the base class initializer with the loaded model and tokenizer
-        super().__init__(model, tokenizer, use_dspy)
+        super().__init__(model, tokenizer)
         
         logger.log.info(f"device: {self.device}")
         logger.log.info(f"dtype: {self.dtype}")

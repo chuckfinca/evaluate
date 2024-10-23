@@ -9,7 +9,6 @@ from finca.evaluate.processors.result_processor import calculate_scores
 from finca.utils.import_utils import import_benchmark_module
 from finca.utils.path_utils import path_to_benchmarks, path_to_raw_results, path_to_results
 from finca.logs.logger import logger
-from finca.prompt_managers.prompt_manager_factory import PromptManagerFactory
 
 class MMLUEvaluationOrchestrator:
     

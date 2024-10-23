@@ -19,9 +19,10 @@ class MultipleChoicePromptManager(BasePromptManager):
         return formatted_instructions, formatted_examples, formatted_question
 
     def print_prompt(self) -> None:
+        print("woot!")
         example_questions = [f"{{example_{i+1}}}" for i in range(5)]  # Assuming max 5 example questions
         formatted_instructions = self.format_instructions("{subject}")
-        print(self._format_prompt_template(formatted_instructions, example_questions, "{test question}"))
+        # print(self._format_prompt_template(formatted_instructions, example_questions, "{test question}"))
 
     def format_instructions(self, subject):
         return self.instructions_template.format(

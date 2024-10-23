@@ -10,7 +10,7 @@ from finca.evaluate.benchmarks.benchmark_config import get_supported_benchmarks
 from dotenv import load_dotenv
 
 from finca.prompt_managers.default_prompt_manager import DefaultPromptManager
-from finca.prompt_managers.dspy_prompt_manager import DSPyPromptManager
+from finca.prompt_managers.multiple_choice_prompt_manager import MultipleChoicePromptManager
 from finca.utils.import_utils import load_config
 
 load_dotenv()
@@ -81,15 +81,18 @@ def main():
         sys.exit(1)
 
     try:
-        use_dspy = config['prompt_manager'] == 'dspy'
-        loader = HuggingFaceModelLoader(config['model_name'], use_dspy)
+        loader = HuggingFaceModelLoader(config['model_name'])
     except ValueError as e:
         logger.log.error(f"Error loading model: {str(e)}")
         sys.exit(1)
         
+    if "dspy_programs" in config:
+        for program_name, program_class in config["dspy_programs"].items():
+            loader.model.register_program(program_name, program_class)
+        
     try:
-        if config["prompt_manager"] == "dspy":
-            prompt_manager = DSPyPromptManager(config, loader.tokenizer)
+        if loader.model.has_dspy_programs:
+            prompt_manager = MultipleChoicePromptManager(config, loader.tokenizer)
         else:
             prompt_manager = DefaultPromptManager(config, loader.tokenizer)
     except ValueError as e:
