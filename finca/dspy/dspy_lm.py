@@ -43,7 +43,14 @@ class DSPyLM(dspy.LM):
             inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
         
         with torch.no_grad():
-            output = self.model.generate(**inputs, max_new_tokens=len(prompt) + 100, **kwargs)
+            generation_config = {
+            "pad_token_id": self.tokenizer.eos_token_id,
+            "max_new_tokens": len(prompt) + 100,
+            "do_sample": False,  # This is all you need for pure greedy decoding
+            "temperature": None, # required for do_sample=False
+            "top_p": None # required for do_sample=False
+            }   
+            output = self.model.generate(**inputs, **generation_config)
             decoded_output = self.tokenizer.decode(output[0], skip_special_tokens=True)
             print("----------------------------------------------------------------------------------------------------------------")
             print("prompt:")
