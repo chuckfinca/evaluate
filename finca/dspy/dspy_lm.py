@@ -45,7 +45,7 @@ class DSPyLM(dspy.LM):
         with torch.no_grad():
             generation_config = {
             "pad_token_id": self.tokenizer.eos_token_id,
-            "max_new_tokens": len(prompt) + 100,
+            "max_new_tokens": 100,
             "do_sample": False,  # This is all you need for pure greedy decoding
             "temperature": None, # required for do_sample=False
             "top_p": None # required for do_sample=False
