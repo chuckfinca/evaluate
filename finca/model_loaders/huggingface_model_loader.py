@@ -27,11 +27,14 @@ class HuggingFaceModelLoader(BaseModelLoader):
             model, tokenizer = self._download_model()
 
         model.to(self.device).to(self.dtype)
+        tokenizer.device = self.device
+
         
         # Call the base class initializer with the loaded model and tokenizer
         super().__init__(model, tokenizer)
         
-        logger.log.info(f"device: {self.device}")
+        logger.log.info(f"model.device: {model.device}")
+        logger.log.info(f"tokenizer.device: {tokenizer.device}")
         logger.log.info(f"dtype: {self.dtype}")
         logger.log.info(f"model: {type(self.model).__name__}")
         logger.log.info(f"tokenizer: {type(self.tokenizer).__name__}")
