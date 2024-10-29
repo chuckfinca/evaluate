@@ -1,17 +1,11 @@
 import dspy
-from finca.dspy.signatures.multiple_choice_signature import MultipleChoiceSignature
+from finca.dspy.signatures.multiple_choice_signature import MMLUSignature
 
-class MultipleChoiceProgram(dspy.Program):
+class MultipleChoiceModule(dspy.Module):
     def __init__(self):
         super().__init__()
-        self.predictor = dspy.ChainOfThought(MultipleChoiceSignature)
+        self.predictor = dspy.Predict(MMLUSignature)
 
-    def forward(self, **kwargs):
-        # Extract prompt from kwargs to ensure it's passed correctly
-        prompt = kwargs.get('prompt')
-        if prompt is None:
-            raise ValueError("Prompt is required for MultipleChoiceProgram")
-            
-        # Pass prompt as a keyword argument
-        pred = self.predictor(prompt=prompt)
+    def __call__(self, subject, instructions, question, choice_a, choice_b, choice_c, choice_d, answer, **kwargs):
+        pred = self.predictor(subject=subject, task_instructions=instructions, question=question, choices_a=choice_a, choice_b=choice_b, choice_c=choice_c, choice_d=choice_d, answer=answer, **kwargs)
         return pred.answer

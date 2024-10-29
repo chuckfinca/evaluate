@@ -8,12 +8,10 @@ from finca.model_loaders.huggingface_model_loader import HuggingFaceModelLoader
 from finca.evaluate.orchestrators.mmlu_benchmark_orchestrator import MMLUEvaluationOrchestrator
 from finca.evaluate.benchmarks.benchmark_setup import setup_benchmark
 from finca.evaluate.benchmarks.benchmark_config import get_supported_benchmarks
-from dotenv import load_dotenv
-
-from finca.prompt_managers.default_prompt_manager import DefaultPromptManager
 from finca.prompt_managers.multiple_choice_prompt_manager import MultipleChoicePromptManager
 from finca.utils.import_utils import load_config
 
+from dotenv import load_dotenv
 load_dotenv()
 
 def parse_args():

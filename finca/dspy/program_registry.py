@@ -1,11 +1,11 @@
 import dspy
-from finca.dspy.programs.multiple_choice_program import MultipleChoiceProgram
+from finca.dspy.programs.multiple_choice_program import MultipleChoiceModule
 
 class DSPyProgramRegistry:
     """Registry for DSPy programs"""
     
     PROGRAM_CLASSES = {
-        "MultipleChoiceProgram": MultipleChoiceProgram
+        "MultipleChoiceProgram": MultipleChoiceModule
     }
     
     def __init__(self):

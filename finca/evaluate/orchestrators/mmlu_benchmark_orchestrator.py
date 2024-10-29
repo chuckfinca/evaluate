@@ -10,6 +10,35 @@ from finca.utils.import_utils import import_benchmark_module
 from finca.utils.path_utils import path_to_benchmarks, path_to_raw_results, path_to_results
 from finca.logs.logger import logger
 
+class MMLUObject:
+    def __init__(self, subject, instructions, examples, question, choice_labels) -> None:
+        self.subject = subject
+        self.instructions = instructions
+        self.examples = [MMLUQuestion(example, include_answer=True) for _, example in examples.iterrows()]
+        self.question_object = MMLUQuestion(question, include_answer=False)
+        self.choice_labels = choice_labels
+        
+    @property
+    def question(self):
+        return self.question_object.question
+    
+    @property
+    def choices(self):
+        return self.question_object.answer_choices
+    
+    @property
+    def answer(self):
+        return self.question_object.answer
+        
+class MMLUQuestion:
+    def __init__(self, df, include_answer) -> None:
+        self.question = df[0]
+        self.answer_choices = [df[1], df[2], df[3], df[4]]
+        self.answer = df[5] if include_answer else None
+
+        
+    
+
 class MMLUEvaluationOrchestrator:
     
     def __init__(self, model, tokenizer, prompt_manager, config):
@@ -23,7 +52,7 @@ class MMLUEvaluationOrchestrator:
         self.nshot = config.get('nshot', 0)
         self.generation_type = config.get('generation_type', 'inference')
         
-        
+        self.instructions = self.config.get('user_prompt_template', {}).get('instructions', "Missing 'instructions' in the config")
         self.choices = config['answer_choices']
 
         # by default we will log the prompt for the first question for each subject as a sanity check
@@ -87,29 +116,30 @@ class MMLUEvaluationOrchestrator:
     
     def _evaluate_question(self, subject, example_questions_df, test_question_df, test_question_number):
         question = test_question_df.iloc[test_question_number]
-        prompt = self.prompt_manager.prepare_prompt(subject, example_questions_df, question)
+        mmlu_object =  MMLUObject(subject=subject, instructions=self.instructions, examples=example_questions_df, question=question, choice_labels=self.choices)
+        
+        correct_answer = self._correct_answer(question)
         
         if self.model.has_dspy_programs:
-            # Use DSPy program for multiple choice
-            pred = self.model(prompt, program_name="MultipleChoiceProgram")
-        elif self.generation_type == "open_ended":
-            pred = self._open_ended_generation(prompt)
+            pred = self.model(mmlu_object, program_name="MultipleChoiceProgram")
         else:
-            pred = self._inference(prompt)
-
-        correct_answer = self._correct_answer(question)
-
-        # Log the inference result
-        self._log_inference_result(subject, prompt, test_question_df, test_question_number, {}, pred, correct_answer)
-
-        is_correct = pred == correct_answer
-        if self.log_prompt:
-            logger.log.info(f"\n------ prompt ({subject}):")
-            logger.log.info(prompt)
-            logger.log.info(f"pred: {pred}")
-            logger.log.info(f"correct_answer: {correct_answer}")
-            logger.log.info("------")
+            prompt = self.prompt_manager.prepare_prompt(mmlu_object)
+            if self.generation_type == "open_ended":
+                pred = self._open_ended_generation(prompt)
+            else:
+                pred = self._inference(prompt)
+            
+            if self.log_prompt:
+                logger.log.info(f"\n------ prompt ({subject}):")
+                logger.log.info(prompt)
+                logger.log.info(f"pred: {pred}")
+                logger.log.info(f"correct_answer: {correct_answer}")
+                logger.log.info("------")
+                    
+                # Log the inference result
+                self._log_inference_result(subject, prompt, test_question_df, test_question_number, {}, pred, correct_answer)
         
+        is_correct = pred == correct_answer
         return is_correct
 
     def _open_ended_generation(self, prompt):

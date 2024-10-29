@@ -1,29 +1,37 @@
-from abc import abstractmethod
-from finca.prompt_managers.base_prompt_manager import BasePromptManager
+from finca.evaluate.orchestrators.mmlu_benchmark_orchestrator import MMLUObject
 
-class MultipleChoicePromptManager(BasePromptManager):
+class MultipleChoicePromptManager():
     def __init__(self, config, tokenizer=None):
-        super().__init__(config, tokenizer)
+        self.config = config
+        self.tokenizer = tokenizer
         user_prompt_template = config.get('user_prompt_template', {})
         self.prompt_template = user_prompt_template.get('template', "Missing 'template' in the config")
         self.question_template = user_prompt_template.get('question_template', "Missing 'question_template' in the config")
         self.question_separator = user_prompt_template.get('question_separator', "Missing 'question_separator' in the config")
         self.instructions_template = user_prompt_template.get('instructions', "Missing 'instructions' in the config")
-        self.choices = config.get('answer_choices', ['A', 'B', 'C', 'D'])
         
-    def prepare_prompt(self, subject, examples, question):
-        formatted_instructions = self.format_instructions(subject)
-        formatted_examples = self._format_examples(examples)
-        formatted_question = self._format_question(question, False)
+        self.choices = config.get('answer_choices', ['A', 'B', 'C', 'D'])
+        self.use_chat_template = config.get('use_chat_template', False)
+        self.system_prompt = config.get('system_prompt', "")
 
-        return formatted_instructions, formatted_examples, formatted_question
+    def prepare_prompt(self, mmlu_object: MMLUObject):
 
-    def print_prompt(self) -> None:
-        print("woot!")
-        example_questions = [f"{{example_{i+1}}}" for i in range(5)]  # Assuming max 5 example questions
-        formatted_instructions = self.format_instructions("{subject}")
-        # print(self._format_prompt_template(formatted_instructions, example_questions, "{test question}"))
+        prompt = self.prompt_template.format(
+            instructions=mmlu_object.instructions,
+            examples=self._format_examples(mmlu_object.examples),
+            question=self._format_question(mmlu_object.question)
+        )
 
+        if self.use_chat_template:
+            messages = [
+                {"role": "system", "content": self.system_prompt},
+                {"role": "user", "content": prompt},
+                {"role": "assistant", "content": ""},
+            ]
+            return self.apply_chat_template(messages)
+        else:
+            return prompt
+        
     def format_instructions(self, subject):
         return self.instructions_template.format(
             subject=subject,
@@ -32,7 +40,7 @@ class MultipleChoicePromptManager(BasePromptManager):
             label_c=self.choices[2],
             label_d=self.choices[3]
         )
-
+    
     def _format_examples(self, examples):
         formatted_examples = []
         for _, example in examples.iterrows():
@@ -52,6 +60,19 @@ class MultipleChoicePromptManager(BasePromptManager):
 
         return self._format_question_template(question_text, choices, answer)
 
+    def print_prompt(self) -> None:
+        example_questions = [f"{{example_{i+1}}}" for i in range(5)]  # Assuming max 5 example questions
+        formatted_instructions = self.format_instructions("{subject}")
+        print(self._format_prompt_template(formatted_instructions, example_questions, "{test question}"))
+
+    def _format_prompt_template(self, instructions, example_questions, test_question):
+        formatted_example_questions = self.question_separator.join(example_questions)
+        return self.prompt_template.format(
+            instructions=instructions,
+            examples=formatted_example_questions,
+            question=test_question
+        ).strip()
+    
     def _format_question_template(self, question, choices, answer=None):
         return self.question_template.format(
             question=question.strip(),
@@ -65,3 +86,11 @@ class MultipleChoicePromptManager(BasePromptManager):
             choice_d=choices[self.choices[3]].strip() if isinstance(choices[self.choices[3]], str) else choices[self.choices[3]],
             answer=answer if answer is not None else ""
         )
+        
+    def apply_chat_template(self, messages):
+        if self.use_chat_template and self.tokenizer:
+            return self.tokenizer.apply_chat_template(messages, tokenize=False)
+        elif isinstance(messages, list):
+            return messages[1]['content']  # Use the user message if not using chat_template
+        else:
+            return messages  # Return as is if it's already a string
