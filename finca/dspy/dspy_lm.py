@@ -8,7 +8,6 @@ class DSPyLM(dspy.LM):
         self.kwargs = kwargs # required dspy attribute
 
     def __call__(self, prompt=None, messages=None, **kwargs):
-        # Handle messages if provided
         if messages:
             chat_template_supported = self._check_chat_template(messages)
             if chat_template_supported:
@@ -16,7 +15,12 @@ class DSPyLM(dspy.LM):
             else:
                 prompt = prompt or "\n".join(f"{msg['role'].title()}: {msg['content']}" for msg in messages)
 
-        inputs = self.tokenizer(prompt, return_tensors="pt")
+        # Create tensors directly on the target device
+        inputs = self.tokenizer(
+            prompt, 
+            return_tensors="pt",
+            device=self.model.device  # Tensors created directly on GPU if model is on GPU
+        )
         
         with torch.no_grad():
             generation_kwargs = {
@@ -29,7 +33,6 @@ class DSPyLM(dspy.LM):
             return self.tokenizer.decode(output[0], skip_special_tokens=True)
 
     def _check_chat_template(self, messages):
-        """Check if chat template is supported for these messages"""
         try:
             for message in messages:
                 for value in message.values():
