@@ -16,7 +16,9 @@ class DSPyLM(dspy.LM):
         # so i've got to get this working. then add examples (once i've pushed 0-shot to the max)
                                                             
         # I also need to make sure things work when not using dspy, now that the architecture is in an alright place
-        inputs = None
+
+
+        # Prepare input based on whether we have messages or prompt
         if messages:
             print("messages is:")
             print(f" - a {type(messages)}")
@@ -34,24 +36,27 @@ class DSPyLM(dspy.LM):
                     except:
                         chat_template_supported = False
                         
-        if chat_template_supported:
-            print("!!!!!!!!Applying chat template!!!!!!!!")
-            inputs = self.tokenizer.apply_chat_template(messages, tokenize=False)
-        else:
-            if not prompt:
-                prompt = "\n".join(f"{msg['role'].title()}: {msg['content']}" for msg in messages)
-            inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+            if chat_template_supported:
+                print("!!!!!!!!Applying chat template!!!!!!!!")
+                prompt = self.tokenizer.apply_chat_template(messages, tokenize=False)
+            else:
+                if not prompt:
+                    prompt = "\n".join(f"{msg['role'].title()}: {msg['content']}" for msg in messages)
         
+        # Tokenize the prompt
+        inputs = self.tokenizer(prompt, return_tensors="pt")
+        
+        # Generate output
         with torch.no_grad():
-            generation_config = {
-            "pad_token_id": self.tokenizer.eos_token_id,
-            "max_new_tokens": 100,
-            "do_sample": False,  # This is all you need for pure greedy decoding
-            "temperature": None, # required for do_sample=False
-            "top_p": None # required for do_sample=False
-            }   
-            output = self.model.generate(**inputs, **generation_config)
+            generation_kwargs = {
+                'max_new_tokens': len(prompt) + 100,
+                'pad_token_id': self.tokenizer.eos_token_id,
+                'do_sample': False,
+                **kwargs
+            }
+            output = self.model.generate(**inputs, **generation_kwargs)
             decoded_output = self.tokenizer.decode(output[0], skip_special_tokens=True)
+            
             print("----------------------------------------------------------------------------------------------------------------")
             print("prompt:")
             print(prompt)
