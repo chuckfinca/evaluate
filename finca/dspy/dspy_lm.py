@@ -18,35 +18,18 @@ class DSPyLM(dspy.LM):
         # I also need to make sure things work when not using dspy, now that the architecture is in an alright place
 
 
-        # Prepare input based on whether we have messages or prompt
+        # Handle messages if provided
         if messages:
-            print("messages is:")
-            print(f" - a {type(messages)}")
-            print(f" - len = {len(messages)}")
-            chat_template_supported = True
-            for index, message in enumerate(messages):
-                print(f"-message {index} is:")
-                print(f"  - a {type(message)}")
-                print(f"  - len = {len(message)}")
-                for key, value in messages[0].items():
-                    print(f"   - key={key}: value=|||{value}|||")
-                    try:
-                        self.tokenizer.apply_chat_template([{"role": value, "content": "test"}], tokenize=False)
-                        print(f"Chat template role {value} supported!")
-                    except:
-                        chat_template_supported = False
-                        
+            chat_template_supported = self._check_chat_template(messages)
             if chat_template_supported:
-                print("!!!!!!!!Applying chat template!!!!!!!!")
                 prompt = self.tokenizer.apply_chat_template(messages, tokenize=False)
             else:
-                if not prompt:
-                    prompt = "\n".join(f"{msg['role'].title()}: {msg['content']}" for msg in messages)
-        
-        # Tokenize the prompt
+                prompt = prompt or "\n".join(f"{msg['role'].title()}: {msg['content']}" for msg in messages)
+
+        # Tokenize and ensure tensors are on the model's device
         inputs = self.tokenizer(prompt, return_tensors="pt")
+        inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
         
-        # Generate output
         with torch.no_grad():
             generation_kwargs = {
                 'max_new_tokens': len(prompt) + 100,
@@ -55,12 +38,17 @@ class DSPyLM(dspy.LM):
                 **kwargs
             }
             output = self.model.generate(**inputs, **generation_kwargs)
-            decoded_output = self.tokenizer.decode(output[0], skip_special_tokens=True)
-            
-            print("----------------------------------------------------------------------------------------------------------------")
-            print("prompt:")
-            print(prompt)
-            print("----------------------------------------------------------------------------------------------------------------")
-            print("decoded_output:")
-            print(decoded_output)
-            return decoded_output
+            return self.tokenizer.decode(output[0], skip_special_tokens=True)
+
+    def _check_chat_template(self, messages):
+        """Check if chat template is supported for these messages"""
+        try:
+            for message in messages:
+                for value in message.values():
+                    self.tokenizer.apply_chat_template(
+                        [{"role": value, "content": "test"}], 
+                        tokenize=False
+                    )
+            return True
+        except:
+            return False
