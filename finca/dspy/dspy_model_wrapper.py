@@ -29,6 +29,8 @@ class DSPyModelWrapper:
 
         # Call the predictor on a particular input.
         pred = predictor(subject=mo.subject, task_instructions=mo.instructions, question=mo.question, choice_a=mo.choices[0], choice_b=mo.choices[1], choice_c=mo.choices[2], choice_d=mo.choices[3], answer=mo.answer, **kwargs)
+        print("answer:")
+        print(pred.answer)
         return pred
         # Handle DSPy program execution
         if "program_name" in kwargs:

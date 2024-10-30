@@ -46,7 +46,8 @@ class DSPyLM(dspy.LM):
             # i think i ahve to put this back into messages format or something so that answer can be a key in a dictionary 
             
             # Must return a list of strings
-            return [decoded_output]
+            result = decoded_output.removeprefix(prompt)
+            return [result]
 
     def _check_chat_template(self, messages):
         """Check if chat template is supported for these messages"""

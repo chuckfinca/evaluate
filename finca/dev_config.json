@@ -1,6 +1,6 @@
 {
     "benchmark_name": "mmlu",
-    "model_name": "google/gemma-2b-it",
+    "model_name": "meta-llama/Meta-Llama-3.1-8B-Instruct",
     "nshot": 2,
     "answer_choices": ["A", "B", "C", "D"],
     "use_chat_template": false,
