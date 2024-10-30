@@ -92,7 +92,7 @@ def main():
         if loader.model.has_dspy_programs:
             prompt_manager = MultipleChoicePromptManager(config, loader.tokenizer)
         else:
-            prompt_manager = DefaultPromptManager(config, loader.tokenizer)
+            prompt_manager = None #DefaultPromptManager(config, loader.tokenizer)
     except ValueError as e:
         logger.log.error(f"Error loading prompt manager: {str(e)}")
         sys.exit(1)
