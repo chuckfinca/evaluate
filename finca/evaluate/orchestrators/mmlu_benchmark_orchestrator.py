@@ -68,8 +68,8 @@ class MMLUEvaluationOrchestrator:
         self.raw_results_path = path_to_raw_results(self.benchmark_name, self.model_name, int(time.time()))
 
     def evaluate(self):
-        logger.log.info("Prompt template:")
-        logger.log.info(self.prompt_manager.print_prompt())
+        # logger.log.info("Prompt template:")
+        # logger.log.info(self.prompt_manager.print_prompt())
 
         test_question_directory = os.path.join(self.data_folder_path, 'test')
         subjects = sorted([f.split("_test.csv")[0] for f in os.listdir(test_question_directory) if "_test.csv" in f])
