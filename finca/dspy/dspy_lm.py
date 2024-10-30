@@ -40,7 +40,13 @@ class DSPyLM(dspy.LM):
                 **kwargs
             }
             output = self.model.generate(**inputs, **generation_kwargs)
-            return self.tokenizer.decode(output[0], skip_special_tokens=True)
+            decoded_output = self.tokenizer.decode(output[0], skip_special_tokens=True)
+            print("decoded_output:")
+            print(decoded_output)
+            # i think i ahve to put this back into messages format or something so that answer can be a key in a dictionary 
+            
+            # Must return a list of strings
+            return [decoded_output]
 
     def _check_chat_template(self, messages):
         """Check if chat template is supported for these messages"""
