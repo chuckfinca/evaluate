@@ -6,28 +6,14 @@ from finca.dspy.adapters.mmlu_adapter import MMLUAdapter
 
 class DSPyModelWrapper:
     def __init__(self, model, tokenizer):
-        self.model = model
-        self.tokenizer = tokenizer
+        self.dspy_lm = DSPyLM(model, tokenizer)
+        dspy.configure(lm=self.dspy_lm) #, adapter=MMLUAdapter())
+
         self.device = model.device
         self.program_registry = DSPyProgramRegistry()
-        self.dspy_initialized = False
-    
-    def setup_dspy_environment(self):
-        """Lazy initialization of DSPy environment when first program is registered"""
-        if not self.dspy_initialized:
-            kwargs = {
-                'temperature': 0.0,
-                'max_tokens': 100,
-                'stop': None,
-                'n': 1
-            }
-            self.dspy_lm = DSPyLM(self.model, self.tokenizer, **kwargs)
-            dspy.configure(lm=self.dspy_lm) #, adapter=MMLUAdapter())
-            self.dspy_initialized = True
     
     def register_program(self, program_name: str):
         """Register a DSPy program"""
-        self.setup_dspy_environment()
         self.program_registry.register(program_name)
 
     @property

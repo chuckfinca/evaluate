@@ -5,7 +5,17 @@ class DSPyLM(dspy.LM):
     def __init__(self, model, tokenizer, **kwargs):
         self.model = model
         self.tokenizer = tokenizer
-        self.kwargs = kwargs # required dspy attribute
+        
+        generation_kwargs = {
+                'max_new_tokens': 100,
+                'pad_token_id': self.tokenizer.eos_token_id,
+                'do_sample': False,  # This is all you need for pure greedy decoding (i.e. it will deterministically pick the most likely token)
+                'temperature': None, # required for do_sample=False
+                'top_p': None, # required for do_sample=False
+                **kwargs
+            }
+        
+        self.kwargs = generation_kwargs # required dspy attribute
 
     def __call__(self, prompt=None, messages=None, **kwargs):
         # Handle messages if provided
@@ -22,9 +32,11 @@ class DSPyLM(dspy.LM):
         
         with torch.no_grad():
             generation_kwargs = {
-                'max_new_tokens': len(prompt) + 100,
+                'max_new_tokens': 100,
                 'pad_token_id': self.tokenizer.eos_token_id,
-                'do_sample': False,
+                'do_sample': False,  # This is all you need for pure greedy decoding (i.e. it will deterministically pick the most likely token)
+                'temperature': None, # required for do_sample=False
+                'top_p': None, # required for do_sample=False
                 **kwargs
             }
             output = self.model.generate(**inputs, **generation_kwargs)

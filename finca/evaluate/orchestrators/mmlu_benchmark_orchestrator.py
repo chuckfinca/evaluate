@@ -42,7 +42,7 @@ class MMLUQuestion:
 class MMLUEvaluationOrchestrator:
     
     def __init__(self, model, tokenizer, prompt_manager, config):
-        self.model = model
+        self.wrapped_model = model
         self.tokenizer = tokenizer
         self.prompt_manager = prompt_manager
         self.config = config
@@ -120,8 +120,8 @@ class MMLUEvaluationOrchestrator:
         
         correct_answer = self._correct_answer(question)
         
-        if self.model.has_dspy_programs:
-            pred = self.model(mmlu_object, program_name="MultipleChoiceProgram")
+        if self.wrapped_model.has_dspy_programs:
+            pred = self.wrapped_model(mmlu_object, program_name="MultipleChoiceProgram")
         else:
             prompt = self.prompt_manager.prepare_prompt(mmlu_object)
             if self.generation_type == "open_ended":
@@ -143,7 +143,7 @@ class MMLUEvaluationOrchestrator:
         return is_correct
 
     def _open_ended_generation(self, prompt):
-        answer = self.model(
+        answer = self.wrapped_model(
             prompt,
             generate = True, # required to use model.generate(...)
             pad_token_id = self.tokenizer.eos_token_id,
@@ -155,7 +155,7 @@ class MMLUEvaluationOrchestrator:
         return self._extract_letter(answer)
     
     def _inference(self, prompt):
-        outputs = self.model(prompt)
+        outputs = self.wrapped_model(prompt)
         logits = outputs.logits[0, -1]
         probs_i = torch.nn.functional.softmax(logits, dim=-1)
         

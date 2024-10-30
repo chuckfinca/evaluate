@@ -87,9 +87,9 @@ def main():
         
     if "dspy_programs" in config:
         for program_name in config["dspy_programs"]:
-            loader.model.register_program(program_name)
+            loader.wrapped_model.register_program(program_name)
     try:
-        if loader.model.has_dspy_programs:
+        if loader.wrapped_model.has_dspy_programs:
             prompt_manager = MultipleChoicePromptManager(config, loader.tokenizer)
         else:
             prompt_manager = None #DefaultPromptManager(config, loader.tokenizer)
@@ -98,7 +98,7 @@ def main():
         sys.exit(1)
 
     try:
-        evaluator = MMLUEvaluationOrchestrator(loader.model, loader.tokenizer, prompt_manager, config)
+        evaluator = MMLUEvaluationOrchestrator(loader.wrapped_model, loader.tokenizer, prompt_manager, config)
         evaluator.evaluate()
     except Exception as e:
         logger.log.error(f"Error during evaluation: {str(e)}")

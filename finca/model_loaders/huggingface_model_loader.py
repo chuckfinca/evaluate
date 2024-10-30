@@ -33,7 +33,7 @@ class HuggingFaceModelLoader(BaseModelLoader):
         
         logger.log.info(f"device: {self.device}")
         logger.log.info(f"dtype: {self.dtype}")
-        logger.log.info(f"model: {type(self.model).__name__}")
+        logger.log.info(f"model: {type(self.wrapped_model).__name__}")
         logger.log.info(f"tokenizer: {type(self.tokenizer).__name__}")
         
         logger.log.info("Special Tokens:")
@@ -67,7 +67,7 @@ class HuggingFaceModelLoader(BaseModelLoader):
         if not self._is_model_saved():
             logger.log.info(f"Starting to save model to {self.local_model_path}")
             try:
-                self.model.save_pretrained(self.local_model_path)
+                self.wrapped_model.save_pretrained(self.local_model_path)
                 self.tokenizer.save_pretrained(self.local_model_path)
                 logger.log.info(f"Model saved to {self.local_model_path}")
             except Exception as e:
