@@ -23,12 +23,12 @@ class DSPyLM(dspy.LM):
             chat_template_supported = self._check_chat_template(messages)
             if chat_template_supported:
                 print("using chat template")
-                prompt = self.tokenizer.apply_chat_template(messages, tokenize=False)
+                formatted_prompt = self.tokenizer.apply_chat_template(messages, tokenize=False)
             else:
                 print("NOT using chat template")
-                prompt = prompt or "\n".join(f"{msg['role'].title()}: {msg['content']}" for msg in messages)
+                formatted_prompt = prompt or "\n".join(f"{msg['role'].title()}: {msg['content']}" for msg in messages)
 
-        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+        inputs = self.tokenizer(formatted_prompt, return_tensors="pt").to(self.model.device)
         
         with torch.no_grad():
             generation_kwargs = {
@@ -40,13 +40,19 @@ class DSPyLM(dspy.LM):
                 **kwargs
             }
             output = self.model.generate(**inputs, **generation_kwargs)
-            decoded_output = self.tokenizer.decode(output[0], skip_special_tokens=True)
+            decoded_output = self.tokenizer.decode(output[0], skip_special_tokens=False)
+            print("prompt:")
+            print(prompt)
+            print("formatted_prompt:")
+            print(formatted_prompt)
             print("decoded_output:")
             print(decoded_output)
             # i think i ahve to put this back into messages format or something so that answer can be a key in a dictionary 
             
             # Must return a list of strings
-            result = decoded_output.removeprefix(prompt)
+            result = decoded_output[len(formatted_prompt):]
+            print("result:")
+            print(result)
             return [result]
 
     def _check_chat_template(self, messages):

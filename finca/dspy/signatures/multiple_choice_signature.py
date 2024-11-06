@@ -1,12 +1,5 @@
 import dspy
 
-class MultipleChoiceSignature(dspy.Signature):
-    """Defines the signature for multiple choice questions"""
-    prompt = dspy.InputField(desc="The context including examples, instructions, and question to answer")
-    # question = dspy.InputField(desc="The question to answer")
-    answer = dspy.OutputField(desc="The answer must be A, B, C, or D")
-    
-
 # Thanks to https://github.com/epec254/dspy_examples/blob/main/dpsy_mmlu.py
 class MMLUSignature(dspy.Signature):
     # what is in the block quote below is included in the content key in the SYSTEM message dictionary (i.e. is part of the SYSTEM prompt)

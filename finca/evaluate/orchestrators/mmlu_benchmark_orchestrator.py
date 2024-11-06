@@ -1,5 +1,6 @@
 import os
 import time
+import dspy
 import numpy as np
 import pandas as pd
 import torch
@@ -138,8 +139,12 @@ class MMLUEvaluationOrchestrator:
                     
                 # Log the inference result
                 self._log_inference_result(subject, prompt, test_question_df, test_question_number, {}, pred, correct_answer)
-        
+                
         is_correct = pred == correct_answer
+        
+        print("dspy inspect_history:"
+        dspy.inspect_history(n=1)
+        
         return is_correct
 
     def _open_ended_generation(self, prompt):
