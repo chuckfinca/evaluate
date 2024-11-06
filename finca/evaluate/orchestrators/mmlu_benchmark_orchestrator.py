@@ -10,11 +10,17 @@ from finca.evaluate.processors.result_processor import calculate_scores
 from finca.utils.import_utils import import_benchmark_module
 from finca.utils.path_utils import path_to_benchmarks, path_to_raw_results, path_to_results
 from finca.logs.logger import logger
+import ipdb
 
 class MMLUObject:
     def __init__(self, subject, instructions, examples, question, choice_labels) -> None:
         self.subject = subject
-        self.instructions = instructions
+        self.instructions = instructions.format(
+            label_a=choice_labels[0],
+            label_b=choice_labels[1],
+            label_c=choice_labels[2],
+            label_d=choice_labels[3]
+        )
         self.examples = [MMLUQuestion(example, include_answer=True) for _, example in examples.iterrows()]
         self.question_object = MMLUQuestion(question, include_answer=False)
         self.choice_labels = choice_labels
@@ -127,6 +133,13 @@ class MMLUEvaluationOrchestrator:
             prompt = self.prompt_manager.prepare_prompt(mmlu_object)
             if self.generation_type == "open_ended":
                 pred = self._open_ended_generation(prompt)
+                
+                pattern = rf"The answer is therefore ([{''.join(self.choices)}])\."
+                match = re.search(pattern, pred.answer)
+                ipdb.set_trace()
+                
+                pred = match.group(1) if match else None
+                
             else:
                 pred = self._inference(prompt)
             

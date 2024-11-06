@@ -1,6 +1,6 @@
 import torch
 import dspy
-import ipdb
+# import ipdb
 
 class DSPyLM(dspy.LM):
     def __init__(self, model, tokenizer, **kwargs):
@@ -58,7 +58,7 @@ class DSPyLM(dspy.LM):
             result = decoded_output[len(formatted_prompt):]
             print("result:")
             print(result)
-            ipdb.set_trace()
+            # ipdb.set_trace()
             return [result]
 
     def _check_chat_template(self, messages):

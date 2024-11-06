@@ -3,7 +3,7 @@ from finca.dspy.dspy_lm import DSPyLM
 from finca.dspy.program_registry import DSPyProgramRegistry
 from finca.dspy.signatures.multiple_choice_signature import MMLUSignature
 from finca.dspy.adapters.mmlu_adapter import MMLUAdapter
-import ipdb
+# import ipdb
 
 class DSPyModelWrapper:
     def __init__(self, model, tokenizer):
@@ -33,7 +33,8 @@ class DSPyModelWrapper:
         pred = predictor(subject=mo.subject, task_instructions=mo.instructions, question=mo.question, choice_a=mo.choices[0], choice_b=mo.choices[1], choice_c=mo.choices[2], choice_d=mo.choices[3], answer=mo.answer, **kwargs)
         print("answer:")
         print(pred.answer)
-        ipdb.set_trace()
+        
+        # ipdb.set_trace()
         return pred
         # Handle DSPy program execution
         if "program_name" in kwargs:
