@@ -142,7 +142,7 @@ class MMLUEvaluationOrchestrator:
                 
         is_correct = pred == correct_answer
         
-        print("dspy inspect_history:"
+        print("dspy inspect_history:")
         dspy.inspect_history(n=1)
         
         return is_correct
