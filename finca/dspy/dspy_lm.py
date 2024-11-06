@@ -1,5 +1,6 @@
 import torch
 import dspy
+import ipdb
 
 class DSPyLM(dspy.LM):
     def __init__(self, model, tokenizer, **kwargs):
@@ -24,6 +25,10 @@ class DSPyLM(dspy.LM):
             if chat_template_supported:
                 print("using chat template")
                 formatted_prompt = self.tokenizer.apply_chat_template(messages, tokenize=False)
+                
+                # the issue is that when I add the template it adds role stuff which isn't in the prompt
+                # then when I decode the prompt that needs removing needs to include that added stuff or we don't end up with the right remaining "answer"/output
+                # so i either need to find another way to get to the answer, or figure out a better way to split that string
             else:
                 print("NOT using chat template")
                 formatted_prompt = prompt or "\n".join(f"{msg['role'].title()}: {msg['content']}" for msg in messages)
@@ -53,6 +58,7 @@ class DSPyLM(dspy.LM):
             result = decoded_output[len(formatted_prompt):]
             print("result:")
             print(result)
+            ipdb.set_trace()
             return [result]
 
     def _check_chat_template(self, messages):
