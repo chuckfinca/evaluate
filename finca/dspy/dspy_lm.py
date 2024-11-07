@@ -46,18 +46,20 @@ class DSPyLM(dspy.LM):
             }
             output = self.model.generate(**inputs, **generation_kwargs)
             decoded_output = self.tokenizer.decode(output[0], skip_special_tokens=False)
-            print("prompt:")
-            print(prompt)
-            print("formatted_prompt:")
-            print(formatted_prompt)
-            print("decoded_output:")
-            print(decoded_output)
+            # print("prompt:")
+            # print(prompt)
+            # print("formatted_prompt:")
+            # print(formatted_prompt)
+            # print("decoded_output:")
+            # print(decoded_output)
             # i think i ahve to put this back into messages format or something so that answer can be a key in a dictionary 
-            
+            # i want to figure out if I need to do this string trimming or if i can still get the answer out without it.
+            # To do this run in colab with the below line commented out, then check to see what pred.answer is outputting.output
+            # pred.answer looks right to me when i do the string trim, not sure if i don;t
             # Must return a list of strings
-            result = decoded_output[len(formatted_prompt):]
-            print("result:")
-            print(result)
+            result = decoded_output#[len(formatted_prompt):]
+            # print("result:")
+            # print(result)
             # ipdb.set_trace()
             return [result]
 

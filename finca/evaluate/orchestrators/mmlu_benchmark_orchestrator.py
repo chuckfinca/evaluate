@@ -137,7 +137,7 @@ class MMLUEvaluationOrchestrator:
                 pattern = rf"The answer is therefore ([{''.join(self.choices)}])\."
                 match = re.search(pattern, pred.answer)
                 ipdb.set_trace()
-                
+                # run this in colab. See if my pattern matching is working. if it is this might just work as expected and we can let it run
                 pred = match.group(1) if match else None
                 
             else:
