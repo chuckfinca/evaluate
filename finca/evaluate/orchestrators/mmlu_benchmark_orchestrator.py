@@ -129,16 +129,17 @@ class MMLUEvaluationOrchestrator:
         
         if self.wrapped_model.has_dspy_programs:
             pred = self.wrapped_model(mmlu_object, program_name="MultipleChoiceProgram")
+            
+            pattern = rf"The answer is therefore ([{''.join(self.choices)}])\."
+            match = re.search(pattern, pred.answer)
+            ipdb.set_trace()
+            # run this in colab. See if my pattern matching is working. if it is this might just work as expected and we can let it run
+            pred = match.group(1) if match else None
+                
         else:
             prompt = self.prompt_manager.prepare_prompt(mmlu_object)
             if self.generation_type == "open_ended":
                 pred = self._open_ended_generation(prompt)
-                
-                pattern = rf"The answer is therefore ([{''.join(self.choices)}])\."
-                match = re.search(pattern, pred.answer)
-                ipdb.set_trace()
-                # run this in colab. See if my pattern matching is working. if it is this might just work as expected and we can let it run
-                pred = match.group(1) if match else None
                 
             else:
                 pred = self._inference(prompt)
