@@ -1,6 +1,5 @@
 import os
 import time
-import dspy
 import numpy as np
 import pandas as pd
 import torch
@@ -10,7 +9,6 @@ from finca.evaluate.processors.result_processor import calculate_scores
 from finca.utils.import_utils import import_benchmark_module
 from finca.utils.path_utils import path_to_benchmarks, path_to_raw_results, path_to_results
 from finca.logs.logger import logger
-import ipdb
 
 class MMLUObject:
     def __init__(self, subject, instructions, examples, question, choice_labels) -> None:
@@ -75,9 +73,6 @@ class MMLUEvaluationOrchestrator:
         self.raw_results_path = path_to_raw_results(self.benchmark_name, self.model_name, int(time.time()))
 
     def evaluate(self):
-        # logger.log.info("Prompt template:")
-        # logger.log.info(self.prompt_manager.print_prompt())
-
         test_question_directory = os.path.join(self.data_folder_path, 'test')
         subjects = sorted([f.split("_test.csv")[0] for f in os.listdir(test_question_directory) if "_test.csv" in f])
 
@@ -132,7 +127,6 @@ class MMLUEvaluationOrchestrator:
             
             pattern = rf"The answer is therefore ([{''.join(self.choices)}])\."
             match = re.search(pattern, pred.answer)
-            ipdb.set_trace()
             # run this in colab. See if my pattern matching is working. if it is this might just work as expected and we can let it run
             pred = match.group(1) if match else None
                 
@@ -155,9 +149,6 @@ class MMLUEvaluationOrchestrator:
                 self._log_inference_result(subject, prompt, test_question_df, test_question_number, {}, pred, correct_answer)
                 
         is_correct = pred == correct_answer
-        
-        print("dspy inspect_history:")
-        dspy.inspect_history(n=1)
         
         return is_correct
 

@@ -1,5 +1,6 @@
 import torch
 import dspy
+from finca.logs.logger import logger
 
 class DSPyLM(dspy.LM):
     def __init__(self, model, tokenizer, **kwargs):
@@ -22,10 +23,10 @@ class DSPyLM(dspy.LM):
         if messages:
             chat_template_supported = self._check_chat_template(messages)
             if chat_template_supported:
-                print("using chat template")
+                logger.log.debug("using chat template")
                 formatted_prompt = self.tokenizer.apply_chat_template(messages, tokenize=False)
             else:
-                print("NOT using chat template")
+                logger.log.debug("NOT using chat template")
                 formatted_prompt = prompt or "\n".join(f"{msg['role'].title()}: {msg['content']}" for msg in messages)
 
         inputs = self.tokenizer(formatted_prompt, return_tensors="pt").to(self.model.device)

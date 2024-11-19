@@ -12,4 +12,4 @@ class MMLUSignature(dspy.Signature):
     choice_b = dspy.InputField(desc="the second choice you can select from")
     choice_c = dspy.InputField(desc="the third choice you can select from")
     choice_d = dspy.InputField(desc="the fourth choice you can select from")
-    answer = dspy.OutputField(desc="The answer which is always one choice_a, choice_b, choice_c, or choice_d - NOT the answer itself")
+    answer = dspy.OutputField(desc="The answer which is always label choice_a, choice_b, choice_c, or choice_d - NOT the answer itself")
