@@ -1,6 +1,5 @@
 import torch
 import dspy
-# import ipdb
 
 class DSPyLM(dspy.LM):
     def __init__(self, model, tokenizer, **kwargs):
@@ -25,10 +24,6 @@ class DSPyLM(dspy.LM):
             if chat_template_supported:
                 print("using chat template")
                 formatted_prompt = self.tokenizer.apply_chat_template(messages, tokenize=False)
-                
-                # the issue is that when I add the template it adds role stuff which isn't in the prompt
-                # then when I decode the prompt that needs removing needs to include that added stuff or we don't end up with the right remaining "answer"/output
-                # so i either need to find another way to get to the answer, or figure out a better way to split that string
             else:
                 print("NOT using chat template")
                 formatted_prompt = prompt or "\n".join(f"{msg['role'].title()}: {msg['content']}" for msg in messages)
@@ -46,21 +41,14 @@ class DSPyLM(dspy.LM):
             }
             output = self.model.generate(**inputs, **generation_kwargs)
             decoded_output = self.tokenizer.decode(output[0], skip_special_tokens=False)
-            # print("prompt:")
-            # print(prompt)
-            # print("formatted_prompt:")
-            # print(formatted_prompt)
-            # print("decoded_output:")
-            # print(decoded_output)
-            # i think i ahve to put this back into messages format or something so that answer can be a key in a dictionary 
-            # i want to figure out if I need to do this string trimming or if i can still get the answer out without it.
-            # To do this run in colab with the below line commented out, then check to see what pred.answer is outputting.output
-            # pred.answer looks right to me when i do the string trim, not sure if i don;t
-            # Must return a list of strings
-            result = decoded_output#[len(formatted_prompt):]
-            # print("result:")
-            # print(result)
-            # ipdb.set_trace()
+            
+            # this is a bit of a hack that seems to work.
+            # we remove the prompt using its character count
+            # however it doesn't remove everything we want because
+            # a piece is added during generation to set up the 
+            # role / turn of the assistant.
+            # Regardless, DSPy seems to be able to extract from the result
+            result = decoded_output[len(formatted_prompt):]
             return [result]
 
     def _check_chat_template(self, messages):
