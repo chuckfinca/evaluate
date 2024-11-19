@@ -2,7 +2,6 @@ import dspy
 from finca.dspy.dspy_lm import DSPyLM
 from finca.dspy.program_registry import DSPyProgramRegistry
 from finca.dspy.signatures.multiple_choice_signature import MMLUSignature
-from finca.dspy.adapters.mmlu_adapter import MMLUAdapter
 
 class DSPyModelWrapper:
     def __init__(self, model, tokenizer):
