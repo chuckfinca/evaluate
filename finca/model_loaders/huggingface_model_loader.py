@@ -21,26 +21,26 @@ class HuggingFaceModelLoader(BaseModelLoader):
         package_data_directory = path_to_package_data()
         self.local_model_path = os.path.join(package_data_directory, 'models', model_name)
 
-        if self._is_model_saved():
-            model, tokenizer = self._load_local_model()
-        else:
-            model, tokenizer = self._download_model()
+        # if self._is_model_saved():
+        #     model, tokenizer = self._load_local_model()
+        # else:
+        #     model, tokenizer = self._download_model()
 
-        model.to(self.device).to(self.dtype)
+        # model.to(self.device).to(self.dtype)
         
         # Call the base class initializer with the loaded model and tokenizer
-        super().__init__(model, tokenizer)
+        super().__init__(model_name)
         
         logger.log.info(f"device: {self.device}")
         logger.log.info(f"dtype: {self.dtype}")
         logger.log.info(f"model: {type(self.wrapped_model).__name__}")
-        logger.log.info(f"tokenizer: {type(self.tokenizer).__name__}")
+        # logger.log.info(f"tokenizer: {type(self.tokenizer).__name__}")
         
-        logger.log.info("Special Tokens:")
-        logger.log.info(self.tokenizer.sep_token)
-        logger.log.info(self.tokenizer.eos_token)
-        logger.log.info(self.tokenizer.all_special_tokens)
-        logger.log.debug(self.tokenizer)
+        # logger.log.info("Special Tokens:")
+        # logger.log.info(self.tokenizer.sep_token)
+        # logger.log.info(self.tokenizer.eos_token)
+        # logger.log.info(self.tokenizer.all_special_tokens)
+        # logger.log.debug(self.tokenizer)
     
     def _is_model_saved(self):
         return os.path.exists(self.local_model_path)
@@ -82,4 +82,3 @@ class HuggingFaceModelLoader(BaseModelLoader):
             tokenizer.pad_id: int = config["pad_id"]
             tokenizer.stop_tokens = config["stop_tokens"]
         return tokenizer
-        

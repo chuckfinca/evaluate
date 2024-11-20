@@ -1,9 +1,9 @@
 from finca.evaluate.orchestrators.mmlu_benchmark_orchestrator import MMLUObject
 
 class MultipleChoicePromptManager():
-    def __init__(self, config, tokenizer=None):
+    def __init__(self, config):
         self.config = config
-        self.tokenizer = tokenizer
+        # self.tokenizer = tokenizer
         user_prompt_template = config.get('user_prompt_template', {})
         self.prompt_template = user_prompt_template.get('template', "Missing 'template' in the config")
         self.question_template = user_prompt_template.get('question_template', "Missing 'question_template' in the config")
