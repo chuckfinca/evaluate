@@ -63,6 +63,7 @@ class HuggingFaceModelLoader(BaseModelLoader):
         tokenizer = self._setup_tokenizer(self.model_name)
         return model, tokenizer
         
+    # not used because it blocks the main thread in colab
     def _save_model(self):
         if not self._is_model_saved():
             logger.log.info(f"Starting to save model to {self.local_model_path}")
