@@ -1,6 +1,7 @@
 import dspy
 from finca.dspy.dspy_lm import DSPyLM
 from finca.dspy.program_registry import DSPyProgramRegistry
+from finca.logs.logger import logger
 
 class DSPyModelWrapper:
     def __init__(self, model, tokenizer):
@@ -40,6 +41,13 @@ class DSPyModelWrapper:
             except Exception as e:
                 raise ValueError(f"Error during model inference: {str(e)}")
         
+        if self.log_prompt:
+            if "program_name" in kwargs:
+                prompt = dspy.inspect_history(n=1)
+                
+            elif prompt_object:
+                prompt = prompt_object
+            logger.log.info(prompt)
         if output is not None:
           return output
 
