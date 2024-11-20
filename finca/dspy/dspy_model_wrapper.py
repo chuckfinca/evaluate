@@ -1,7 +1,6 @@
 import dspy
 from finca.dspy.dspy_lm import DSPyLM
 from finca.dspy.program_registry import DSPyProgramRegistry
-import ipdb
 
 class DSPyModelWrapper:
     def __init__(self, model, tokenizer):
@@ -27,9 +26,7 @@ class DSPyModelWrapper:
             program_name = kwargs.pop("program_name")
             try:
                 program = self.program_registry.get_program(program_name)
-                ipdb.set_trace()
-                pred = program(prompt_object, **kwargs)
-                return pred.answer
+                return program(prompt_object, **kwargs)
             except (KeyError, ValueError) as e:
                 raise ValueError(f"Error executing DSPy program {program_name}: {str(e)}")
         
