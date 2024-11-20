@@ -4,6 +4,7 @@ from finca.logs.logger import logger
 
 class DSPyLM(dspy.LM):
     def __init__(self, model, tokenizer, **kwargs):
+        super().__init__(model)
         self.model = model
         self.tokenizer = tokenizer
         
