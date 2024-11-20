@@ -101,13 +101,13 @@ class MMLUEvaluationOrchestrator:
     def _evaluate_subject(self, subject, example_questions_df, test_question_df):
         cors = []
         
-        self.log_prompt = True
+        self.wrapped_model.log_prompt = True
 
         for i in range(len(test_question_df)):
             correctness = self._evaluate_question(subject, example_questions_df, test_question_df, i)
             cors.append(correctness)
-            if self.log_prompt:
-                self.log_prompt = False
+            if self.wrapped_model.log_prompt:
+                self.wrapped_model.log_prompt = False
 
         acc = np.mean(cors)
         logger.log.info(f"{subject} Accuracy: {acc:.3f}")

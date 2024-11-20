@@ -9,6 +9,7 @@ class DSPyModelWrapper:
 
         self.device = model.device
         self.program_registry = DSPyProgramRegistry()
+        self.log_prompt = False
     
     def register_program(self, program_name: str):
         """Register a DSPy program"""
@@ -26,7 +27,7 @@ class DSPyModelWrapper:
             program_name = kwargs.pop("program_name")
             try:
                 program = self.program_registry.get_program(program_name)
-                return program(prompt_object, **kwargs)
+                output = program(prompt_object, **kwargs)
             except (KeyError, ValueError) as e:
                 raise ValueError(f"Error executing DSPy program {program_name}: {str(e)}")
         
@@ -34,9 +35,12 @@ class DSPyModelWrapper:
         elif prompt_object:
             try:
                 if kwargs.pop("generate", False):
-                    return self.model.generate(prompt_object, **kwargs)
+                    output = self.model.generate(prompt_object, **kwargs)
                 return self.model(prompt_object, **kwargs)
             except Exception as e:
                 raise ValueError(f"Error during model inference: {str(e)}")
         
+        if output is not None:
+          return output
+
         raise ValueError("Missing prompt or program_name in arguments")
