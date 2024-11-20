@@ -9,6 +9,7 @@ from finca.evaluate.processors.result_processor import calculate_scores
 from finca.utils.import_utils import import_benchmark_module
 from finca.utils.path_utils import path_to_benchmarks, path_to_raw_results, path_to_results
 from finca.logs.logger import logger
+import ipdb
 
 class MMLUObject:
     def __init__(self, subject, instructions, examples, question, choice_labels) -> None:
@@ -122,7 +123,7 @@ class MMLUEvaluationOrchestrator:
         
         if self.wrapped_model.has_dspy_programs:
             answer = self.wrapped_model(mmlu_object, program_name="MultipleChoiceProgram")
-            
+            ipdb.set_trace()
             pattern = rf"The answer is therefore ([{''.join(self.choices)}])\."
             match = re.search(pattern, answer)
             # run this in colab. See if my pattern matching is working. if it is this might just work as expected and we can let it run
