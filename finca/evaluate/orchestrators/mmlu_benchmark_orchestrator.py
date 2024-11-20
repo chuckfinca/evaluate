@@ -42,8 +42,6 @@ class MMLUQuestion:
         self.answer = df[5] if include_answer else None
 
         
-    
-
 class MMLUEvaluationOrchestrator:
     
     def __init__(self, model, tokenizer, prompt_manager, config):
@@ -123,32 +121,32 @@ class MMLUEvaluationOrchestrator:
         correct_answer = self._correct_answer(question)
         
         if self.wrapped_model.has_dspy_programs:
-            pred = self.wrapped_model(mmlu_object, program_name="MultipleChoiceProgram")
+            answer = self.wrapped_model(mmlu_object, program_name="MultipleChoiceProgram")
             
             pattern = rf"The answer is therefore ([{''.join(self.choices)}])\."
-            match = re.search(pattern, pred.answer)
+            match = re.search(pattern, answer)
             # run this in colab. See if my pattern matching is working. if it is this might just work as expected and we can let it run
-            pred = match.group(1) if match else None
+            answer = match.group(1) if match else None
                 
         else:
             prompt = self.prompt_manager.prepare_prompt(mmlu_object)
             if self.generation_type == "open_ended":
-                pred = self._open_ended_generation(prompt)
+                answer = self._open_ended_generation(prompt)
                 
             else:
-                pred = self._inference(prompt)
+                answer = self._inference(prompt)
             
             if self.log_prompt:
                 logger.log.info(f"\n------ prompt ({subject}):")
                 logger.log.info(prompt)
-                logger.log.info(f"pred: {pred}")
+                logger.log.info(f"pred: {answer}")
                 logger.log.info(f"correct_answer: {correct_answer}")
                 logger.log.info("------")
                     
                 # Log the inference result
-                self._log_inference_result(subject, prompt, test_question_df, test_question_number, {}, pred, correct_answer)
+                self._log_inference_result(subject, prompt, test_question_df, test_question_number, {}, answer, correct_answer)
                 
-        is_correct = pred == correct_answer
+        is_correct = answer == correct_answer
         
         return is_correct
 
