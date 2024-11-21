@@ -1,3 +1,4 @@
+import os
 import dspy
 from finca.dspy.dspy_lm import DSPyLM
 from finca.dspy.program_registry import DSPyProgramRegistry
@@ -5,7 +6,9 @@ from finca.logs.logger import logger
 
 class DSPyModelWrapper:
     def __init__(self, model, tokenizer):
-        self.dspy_lm = DSPyLM(model, tokenizer)
+        hf_token = os.getenv('HF_TOKEN')
+        self.dspy_lm = dspy.LM("huggingface/meta-llama/Meta-Llama-3.1-8B-Instruct", api_key=hf_token)
+        # self.dspy_lm = DSPyLM(model, tokenizer)
         dspy.configure(lm=self.dspy_lm)
 
         self.device = model.device
