@@ -4,11 +4,11 @@ from finca.dspy.program_registry import DSPyProgramRegistry
 from finca.logs.logger import logger
 
 class DSPyModelWrapper:
-    def __init__(self, model_name):
-        self.dspy_lm = dspy.HFModel(model_name)
-        # self.dspy_lm = DSPyLM(model, tokenizer)
+    def __init__(self, model, tokenizer):
+        self.dspy_lm = DSPyLM(model, tokenizer)
         dspy.configure(lm=self.dspy_lm)
 
+        self.device = model.device
         self.program_registry = DSPyProgramRegistry()
         self.log_prompt = False
     
